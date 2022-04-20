@@ -9,7 +9,7 @@ int main()
     printf("두 정수 m, n을 입력하세요.");
     scanf("%d %d", &m, &n);
     //2,3 입력 -> max = 3, min = 2, maxKeep = 3, keep = 98 //4 6
-
+    // test
     do
     {
         int max = (m * i > n * i) ? m * i : n * i; // 현재 계산 최댓값
