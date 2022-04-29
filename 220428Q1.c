@@ -1,28 +1,63 @@
 #define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 
-/*"I am a boy. I am Happy!" ¹®ÀÚ¿­ÀÌ ÀÖ´Âµ¥ ÀÌÁß boyÀÇ À§Ä¡ ÁÖ¼Ò¸¦ Ãâ·ÂÇÏ°í
-boy¸¦ girl·Î ¹Ù²Ù¾î Ãâ·ÂÇÏµµ·Ï ÇÏ´Â ÄÚµå¸¦ ÀÛ¼ºÇÏ¶ó.
+#include <string.h>
 
-Ãâ·Â°á°ú >
-	Boy À§Ä¡ ÁÖ¼Ò : 0FF2 C400
-	¹Ù²ï ÈÄ ¹®ÀÚ¿­ :"I am a girl. I am Happy"
-*/
 
 int main()
 {
-	char str1[25] = "I am a boy. I am Happy!";
-	char str2[25];
-	char str3[5] = "girl";
-	char str4[4] = "boy";
-
+	char s[100] = "I am a boy. I am Happy!";
+	char find[10];
+	printf("I am a boy. I am Happy!\n");
+	printf("ìœ„ ë¬¸ì¥ì—ì„œ ìˆ˜ì •í•˜ê³  ì‹¶ì€ ë¬¸ìì—´ì„ ì…ë ¥í•˜ì„¸ìš”");
+	gets(find);
+	printf("ìƒˆë¡œìš´ ë¬¸ìì—´ì„ ì…ë ¥í•˜ì„¸ìš”.");
+	char news[10];
+	gets(news);
+	char temp1[10];
+	int slen = strlen(s);
+	int findlen = strlen(find);
+	int newslen = strlen(news);
+	int error = newslen - findlen;
 	int cnt = 0;
-	int count = 0;
-	
-	int i = 0;
-	while (str1[i] == str4[0] && str2[i + 1] == str4[1] && str3[i + 2] == str4[2])
+
+	while(1)
 	{
-		
+		for (int j = cnt; j < cnt + findlen; j++)
+		{
+			temp1[j - cnt] = s[j];
+		}
+		if (strncmp(temp1, find, 3) == 0)
+		{
+			break;
+		}
+		cnt++;
 	}
+
+	printf("%p\n", s[cnt]); // boyì£¼ì†Œê°’ ë°˜í™˜
+
+	if (error >= 0)
+	{
+		for (int i = slen - 1; i >= cnt + findlen; i--) // ì˜¤ì°¨ë§Œí¼ ì¸ë±ìŠ¤ ì´ë™
+		{
+			*(s + i + error) = *(s + i);
+		}
+	}
+	else
+	{
+		for (int i = cnt + findlen; i < slen - 1; i++) // ì˜¤ì°¨ë§Œí¼ ì¸ë±ìŠ¤ ì´ë™
+		{
+			*(s + i + error) = *(s + i);
+		}
+	}
+
+	for (int i = cnt; i < cnt + newslen; i++) // ë°”ê¿€ë‹¨ì–´ êµì²´
+	{
+		*(s + i) = *(news + i - cnt);
+	}
+
+	printf("%s\n", s);
+
 	return 0;
 }
