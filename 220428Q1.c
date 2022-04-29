@@ -4,6 +4,22 @@
 
 #include <string.h>
 
+/*Q. "I am a boy. I am Happy!" 문자열이 있는데
+
+이 중 boy 의 위치 주소를 출력하고
+
+boy 를 girl 로 바꾸어 출력하도록 하는 코드를
+
+작성하라.
+
+​
+
+출력결과)
+
+boy 위치 주소 : 0FF2 C400
+
+바뀐 문자열 : "I am a girl. I am Happy!"
+*/
 
 int main()
 {
