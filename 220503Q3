@@ -1,0 +1,40 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+
+/*Q. P.448 도전 실전 예제를 참고하여 프로필 교환 프로그램을 작성하세요.*/
+
+void swap(char* type, void *vp1, void *vp2);
+
+int main()
+{
+	int a, c;
+	double b, d;
+	printf("첫 번째 사람의 나이와 키 입력 : ");
+	scanf("%d %lf", &a, &b);
+	printf("두 번째 사람의 나이와 키 입력 : ");
+	scanf("%d %lf", &c, &d);
+
+	swap("int", &a, &c);
+	swap("double", &b, &d);
+
+	printf("첫 번째 사람의 나이와 키 : %d %.1lf\n", a, b);
+	printf("두 번째 사람의 나이와 키 : %d %.1lf\n", c, d);
+}
+
+void swap(char* type, void* vp1, void* vp2)
+{
+	if (type == "int")
+	{
+		int temp;
+		temp = *(int*)vp1;
+		*(int*)vp1 = *(int*)vp2;
+		*(int*)vp2 = temp;
+	}
+	else
+	{
+		double temp2;
+		temp2 = *(double*)vp1;
+		*(double*)vp1 = *(double*)vp2;
+		*(double*)vp2 = temp2;
+	}
+}
