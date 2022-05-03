@@ -1,0 +1,55 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+
+/*다음과 같이 두개의 int형 포인터 변수와 길이가
+5인 int형 배열을 선언한다.
+
+int *maxPtr;
+int *minPtr;
+int arr[5];
+
+MaxAndMin이라는 함수를 정의하고 이를 호출하여
+위 배열과 두 포인터를 변수로 전달한다.
+이 함수의 호출이 완료되면, 포인터 변수 maxPtr에는
+가장 큰 값이 저장된 배열 요소의 주소값이, minPtr에는 가장 작은 배열
+요소의 주소값이 저장되어야 한다.
+(이중포인터를 매개변수로 활용할것)
+
+결과 출력 >
+	arr주소값과, 최대, 최소의 주소값
+	maxPtr, minPtr이 가진 주소에 저장된 값을 출력하라.
+*/
+void MaxAndMin(int* pt, int** ppa, int** ppb);
+
+int main()
+{
+	int* maxPtr;
+	int* minPtr;
+	int arr[5] = { 9, 2, 3, 4, 5 };
+
+	MaxAndMin(arr, &maxPtr, &minPtr);
+
+	printf("%d %d\n", *maxPtr, *minPtr);
+}
+
+void MaxAndMin(int* pt, int** ppa, int** ppb)
+{
+	//최솟값
+	*ppa = pt;
+	*ppb = pt;
+	for (int i = 0; i < 5; i++)
+	{
+		for (int j = i; j < 5; j++)
+		{
+			if (**ppa < *(pt + j))
+			{
+				*ppa = pt + j;
+			}
+			if (**ppb > *(pt + j))
+			{
+				*ppb = pt + j;
+			}
+		}
+	}
+
+}
