@@ -1,0 +1,62 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main()
+{
+	int N, cnt = 0, l = 0; // N : 입력받는 수, cnt : 약수 개수, l은 5개씩 한줄에 표시하려고 줄바꿈 수
+	printf("2이상의 양의 정수를 입력하세요.");
+	scanf("%d", &N);
+
+	int* prime= (int*)malloc(N);
+
+	if (prime == NULL)
+	{
+		printf("#메모리가 부족합니다.\n");
+		exit(1);
+	}
+	
+	for (int i = 0; i < N - 2; i++) 
+	{
+		prime[i] = i + 2;//2부터 시작이기 때문에 +2 
+	}
+
+	//소수 찾기
+	for (int k = 2; k < N; k++)
+	{
+		for (int i = 1; i <= prime[k - 2]; i++) // i로 나눠보기
+		{
+			if (prime[k - 2] % i == 0)
+			{
+				cnt++;
+			}
+		}
+		if (cnt == 2) // 약수가 1과 자기자신 2개이면 소수
+		{
+			prime[k - 2] = k;
+			printf("%5d", prime[k - 2]);
+		}
+		else // 소수가 아니면 x
+		{
+			printf("%5c", 'x');
+		}
+		cnt = 0; // 약수 개수 초기화
+		// 5개마다 줄바꿈
+		l++; 
+		if (l == 5)
+		{
+			printf("\n");
+			l = 0;
+		}
+	}
+
+	for (int i = 0; i <= N - 2; i++)
+	{
+		free(prime[i]);
+	}
+	
+
+	return 0;
+	
+}
