@@ -1,0 +1,76 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <windows.h>
+
+/*파일 복사 프로그램 만들기.
+복사할 파일명과 복사후 생성되는 파일명을 입력받아서 파일의 내용을 복사하는 프로그램 작성.
+단. txt파일뿐만 아니라 이미지 파일등.. 모든 종류의 파일에 다 동일하게
+적용할 수 있어야 한다.
+복사 진행 과정을 백분율로 화면에 표시해주도록 하고, 한번에 4바이트씩 복사하도록 한다.
+ex>
+	원본 파일 : source.txt
+	대상 파일 : dest.txt
+		복사중 : 12%
+*/
+
+int main()
+{
+	FILE* ifp, * ofp;
+	char iName[20], oName[20];
+	char buffer[4] = {0};
+	int count = 0, total = 0;
+	printf("복사할 파일명을 입력하세요.\n");
+	scanf_s("%s", iName, sizeof(iName));
+	printf("복사 후 생성할 파일명을 입력하세요.\n");
+	scanf_s("%s", oName, sizeof(oName));
+
+	fopen_s(&ifp, iName, "rb");
+	if (ifp == NULL)
+	{
+		printf("입력 파일을 열지 못했습니다.\n");
+		return 1;
+	}
+	fopen_s(&ofp, oName, "wb+");
+	if (ofp == NULL)
+	{
+		printf("출력 파일을 열지 못했습니다.\n");
+		return 1;
+	}
+
+	fseek(ifp, 0, SEEK_END);
+	int size = ftell(ifp); // 원본크기 저장
+
+	rewind(ifp);
+
+	while (feof(ifp) == 0)    // 파일 포인터가 파일의 끝이 아닐 때 계속 반복
+	{
+		if (size < total + 4)
+		{
+			char* buf = (char*)calloc(size % 4, 1);
+			count = fread(buf, sizeof(char), size % 4, ifp); // fread(버퍼, 읽기크기, 읽기횟수, 파일포인터)
+			fwrite(buf, sizeof(char), size % 4, ofp); // 4바이트씩 계산 / fwrite(버퍼, 쓰기크기,쓰기욋수, 파일포인터)
+			printf("복사중 : %.2lf\n", ((float)total / (float)size) * 100);
+			system("cls");
+			Sleep(20);
+			free(buf);
+		}
+		else
+		{
+			count = fread(buffer, sizeof(char), 4, ifp); // fread(버퍼, 읽기크기, 읽기횟수, 파일포인터)
+			total += count; // 읽은 크기 누적
+			fwrite(buffer, sizeof(char), 4, ofp); // 4바이트씩 계산 / fwrite(버퍼, 쓰기크기,쓰기욋수, 파일포인터)
+			printf("복사중 : %.2lf\n", ((float)total / (float)size) * 100);
+			system("cls");
+			Sleep(20);
+		}
+	}  
+	
+	system("cls");
+	printf("복사완료\n");
+
+	fclose(ifp);
+	fclose(ofp);
+
+}
