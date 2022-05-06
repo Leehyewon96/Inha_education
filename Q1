@@ -1,0 +1,73 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int main()
+{
+	FILE* ifp1, *ifp2, * ofp;
+	char animal[80] = {0};
+	char animal1[80] = {0};
+	char *ch1, *ch2;
+	int cnt=0;
+
+	ifp1 = fopen("a.txt", "r");
+	if (ifp1 == NULL)
+	{
+		printf("입력 파일1을 열지 못했습니다.\n");
+		return 1;
+	}
+
+	ifp2 = fopen("b.txt", "r");
+	if (ifp2 == NULL)
+	{
+		printf("입력 파일2를 열지 못했습니다.\n");
+		return 1;
+	}
+
+	ofp = fopen("c.txt", "w");
+	if (ofp == NULL)
+	{
+		printf("출력 파일을 열지 못했습니다.\n");
+		return 1;
+	}
+
+	while (1)
+	{
+		ch2 = fgets(animal1, sizeof(animal1), ifp2);
+		if (ch2 == NULL)
+			break;
+		
+		rewind(ifp1);
+		while(1)
+		{
+			ch1 = fgets(animal, sizeof(animal), ifp1);
+			if (ch1 == NULL)
+				break;
+			
+
+			if (strcmp(animal, animal1) == 0)
+			{
+				cnt++;
+			}
+		}
+
+		if (cnt == 0)
+		{
+			fputs(animal1, ofp);
+			//fprintf(stdout, "%10s\n", ch2);
+		}
+
+		cnt = 0;
+		
+	}
+
+
+	//fputs('\n', ifp1);
+	//fputs('\n', ifp2);
+	fclose(ifp1);
+	fclose(ifp2);
+	fclose(ofp);
+
+	return 0;
+}
