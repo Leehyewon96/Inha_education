@@ -1,0 +1,74 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+/*Q. 99.txt 파일을 만들고, 여기에 구구단을 저장하도록
+	한다. 그리고 fseek() 이용 원하는 구구단의 내용만
+	찾아서 출력하는 프로그램을 작성하라.
+	ex>	몇 단 ? 2
+		2 단
+		=================================
+		2 x 1 = 2
+		....
+		2 x 9 = 18
+		=================================
+*/
+
+int main()
+{
+	FILE* ifp;
+
+	ifp = fopen("mul.txt", "w+");
+	if (ifp == NULL)
+	{
+		printf("입력 파일을 열지 못했습니다.\n");
+		return 1;
+	}
+
+	for (int i = 2; i < 10; i++)
+	{
+		fprintf(ifp, "%d 단\n", i);
+		fprintf(ifp, "====================\n");
+		for (int j = 1; j < 10; j++)
+		{
+			fprintf(ifp, "%d * %d = %d\n",i, j, i*j);
+		}
+		fprintf(ifp, "====================\n");
+		fprintf(ifp, "\n");
+	}
+
+	fclose(ifp);
+
+	char list[80] = { 0 };
+	char* ch;
+
+	ifp = fopen("mul.txt", "r");
+	if (ifp == NULL)
+	{
+		printf("입력 파일을 열지 못했습니다.\n");
+		return 1;
+	}
+
+	int num;
+	scanf("%d", &num);
+
+	num = (num - 2) * 13;
+
+	for (int i = 0; i < num; i++)
+	{
+		ch = fgets(list, sizeof(list), ifp);
+		if (ch == NULL)
+			break;
+	}
+
+	for (int i = 0; i < 12; i++)
+	{
+		ch = fgets(list, sizeof(list), ifp);
+		if (ch == NULL)
+			break;
+		printf("%s", ch);
+	}
+	rewind(ifp);
+	fclose(ifp);
+	return 0;
+}
