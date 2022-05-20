@@ -1,0 +1,42 @@
+Q2. 단어를 입력받아서 그 단어를 뒤집었을 때 원래의
+    단어와 같은지를 판단하는 프로그램을 작성하라.
+    ex) 단어를 입력하시오 : level
+        level은 회문입니다.
+        단어를 입력하시오 : animal
+        animal은 회문이 아닙니다.
+
+#include <iostream>
+#include <cstring>
+using namespace std;
+
+int main()
+{
+	
+	string str;
+	cout << "단어를 입력하세요" << endl;
+	cin >> str;	
+
+	int cnt = 0;
+	int j = 0;
+	for (int i = str.size() - 1; i >= 0; i--)
+	{
+		if (str[i] == str[j])
+		{
+			cnt++;
+		}
+		j++;
+	}
+
+	if (cnt == str.size())
+	{
+		cout << str << "은 회문입니다." << endl;
+	}
+	else
+	{
+		cout << str << "은 회문이 아닙니다." << endl;
+	}
+	
+
+	return 0;
+
+}
