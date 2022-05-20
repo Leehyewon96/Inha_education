@@ -1,0 +1,198 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+enum menu { INPUT, OUTPUT, SEARCH, OUT, QUIT };
+
+typedef struct profile
+{
+    int id;
+    char name[10];
+    int kor, eng, math, sum;
+    double avg;
+    char grade;
+    struct profile* next;
+}Profile;
+
+void InputInfo(Profile* head);
+void OutputInfo(Profile* head);
+void SearchInfo(Profile* head);
+void Out(Profile* head);
+void CalGrade(Profile* p);
+void freememory(Profile* head);
+
+int main()
+{
+    enum menu Menu;
+    int flag = 1;
+    int n = 1;
+    Profile* head = (Profile*)calloc(1, sizeof(Profile));
+
+    while (flag)
+    {
+        printf("INPUT(0), OUTPUT(1), SEARCH(2), OUT(3), QUIT(4) 메뉴를 선택하세요");
+        scanf("%d", &Menu);
+
+        switch (Menu)
+        {
+        case 0:
+            InputInfo(head);
+            break;
+        case 1:
+            OutputInfo(head);
+            break;
+        case 2:
+            SearchInfo(head);
+            break;
+        case 3:
+            Out(head);
+            break;
+        case 4:
+            freememory(head);
+            flag = 0;
+            break;
+        }
+    }
+    return 0;
+}
+
+void InputInfo(Profile* head)
+{
+    Profile* nodeTemp = (Profile*)calloc(1, sizeof(Profile));
+    printf("=================학생의 정보를 입력합니다.=================\n");
+    printf("학생의 학번을 입력하세요 : ");
+    scanf("%d", &(nodeTemp->id));
+
+    Profile* ptr0 = head->next;
+    while (ptr0 != NULL)
+    {
+        if (ptr0->id == nodeTemp->id)
+        {
+            printf("이미 존재하는 학번입니다. 다른 학번을 입력하세요 :");
+            scanf("%d", &(nodeTemp->id));
+            ptr0 = head;
+        }
+        ptr0 = ptr0->next;
+    }
+
+    printf("학생의 이름을 입력하세요 : ");
+    scanf("%s", &(nodeTemp->name));
+
+    printf("학생의 국어, 영어, 수학 점수를 입력하세요 : ");
+    scanf("%d %d %d", &(nodeTemp->kor), &(nodeTemp->eng), &(nodeTemp->math));
+
+    nodeTemp->sum = (nodeTemp->kor) + (nodeTemp->eng) + (nodeTemp->math);
+    nodeTemp->avg = nodeTemp->sum / 3.0;
+    CalGrade(nodeTemp); // 학점 계산하고 저장하는 함수
+
+    //성적순으로 몇번째에 들어갈지 검사
+    Profile* ptr = head->next;
+    Profile* prePtr = head;
+
+    while (ptr != NULL)
+    {
+        if ((nodeTemp)->avg > ptr->avg)
+        {
+            prePtr->next = nodeTemp;
+            nodeTemp->next = ptr;
+            return;
+        }
+
+        prePtr = ptr;
+        ptr = ptr->next;
+    }
+
+    prePtr->next = nodeTemp;
+}
+
+void OutputInfo(Profile* head)
+{
+    Profile* ptr2 = head->next;
+    while (ptr2 != NULL)
+    {
+        printf("%d %s %d\n", ptr2->id, ptr2->name, ptr2->sum);
+        ptr2 = ptr2->next;
+    }
+}
+
+void SearchInfo(Profile* head)
+{
+    printf("=================학생의 정보를 검색합니다.=================\n");
+    printf("검색할 학생의 학번을 입력하세요 : ");
+    int tmpID = 0;
+    scanf("%d", &tmpID);
+    Profile* ptr3 = head->next;
+
+    while (ptr3 != NULL)
+    {
+        if (ptr3->id == tmpID)
+        {
+            printf("학번 : %d, 성적:  %c\n", ptr3->id, ptr3->grade);
+            return;
+        }
+        ptr3 = ptr3->next;
+    }
+
+    printf("존재하지 않는 학생입니다. 검색을 종료합니다.\n");
+
+    return;
+}
+
+void Out(Profile* head)
+{
+    Profile* curNode = head->next;
+    Profile* preNode = head;
+
+    int cnt = 0;
+    printf("=================성적 미달 제적 리스트=================\n");
+    while (curNode != NULL)
+    {
+        if (curNode->avg <= 60)
+        {
+            ++cnt;
+            printf("학번 : %d, 이름 : %s, 평균 : %.1lf\n", curNode->id, curNode->name, curNode->avg);
+
+            preNode->next = curNode->next;
+            free(curNode);
+            curNode = preNode->next;
+            continue;
+        }
+        preNode = curNode;
+        curNode = curNode->next;
+    }
+    if (cnt == 0)
+    {
+        printf("제적 학생이 없습니다.\n");
+    }
+}
+
+void CalGrade(Profile* p)
+{
+    int Avg = (int)(p->avg / 10.0);
+
+    switch (Avg)
+    {
+    case 9:
+        p->grade = 'A';
+        break;
+    case 8:
+        p->grade = 'B';
+        break;
+    case 7:
+        p->grade = 'C';
+        break;
+    default:
+        p->grade = 'F';
+        break;
+    }
+}
+
+void freememory(Profile* head)
+{
+    if (head != NULL)
+    {
+        freememory(head->next);
+    }
+    free(head);
+}
