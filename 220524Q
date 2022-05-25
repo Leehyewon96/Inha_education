@@ -1,0 +1,174 @@
+#include <iostream>
+#include <vector>
+#include <ctime>
+#define size 100000
+using namespace std;
+
+int num = 100000;
+
+void prime0();
+void prime1();
+void prime2();
+void prime3();
+
+int main()
+{
+    cout << "prime0 : ";
+    prime0();
+    cout << "prime1 : ";
+    prime1();
+    cout << "prime2 : ";
+    prime2();
+    cout << "prime3 : ";
+    prime3();
+
+    return 0;
+}
+
+void prime0() // 모두
+{
+    int a = 0, cnt = 0;
+    int prime[size];
+    //cin >> num;
+
+    clock_t start = clock();
+
+    for (int i = 2; i < num; i++)
+    {
+        for (int j = 1; j < i; j++)
+        {
+            if (i % j == 0)
+                cnt++;
+        }
+        if (cnt == 1)
+        {
+            cout.width(5);
+
+            if(a%5==0)
+                cout <<endl;
+            
+            prime[a++] = i;
+            cout << prime[a - 1];
+        }
+        cnt = 0;
+    }
+    cout << endl;
+    clock_t end = clock();
+    cout << "prime0 걸린시간 : ";
+    cout << double(end - start) << endl;
+}
+
+void prime1() // 홀수만
+{
+    int a = 0, cnt = 0;
+    int prime1[size];
+
+    //cin >> num;
+
+    clock_t start = clock();
+    prime1[a++] = 2;
+    cout << prime1[a - 1];
+    for (int i = 3; i < num; i += 2)
+    {
+        for (int j = 1; j < i; j++)
+        {
+            if (i % j == 0)
+                cnt++;
+        }
+        if (cnt == 1)
+        {
+            cout.width(5);
+            if (a % 5 == 0)
+                cout << endl;
+
+            prime1[a++] = i;
+            cout << prime1[a - 1];
+        }
+        cnt = 0;
+    }
+    cout << endl;
+    clock_t end = clock();
+    cout << "prime1 걸린시간 : ";
+    cout << (end - start) << endl;
+}
+
+void prime2() // 이전에 계산된 소수만
+{
+    int a = 0, cnt = 0;
+    int prime2[size] = {};
+
+    //cin >> num;
+
+    clock_t start = clock();
+    prime2[a++] = 2;
+    cout << prime2[a - 1];
+    for (int i = 3; i < num; i += 2)
+    {
+        for (int j = 2; prime2[j - 2] < i; j++)
+        {
+            if(prime2[j - 2] == 0)
+            {
+                break;
+            }
+            if (i % prime2[j - 2] == 0)
+            {
+                cnt++;
+            }
+        }
+        if (cnt == 0)
+        {
+            cout.width(5);
+            if (a % 5 == 0)
+                cout << endl;
+
+            prime2[a++] = i;
+            cout << prime2[a - 1];
+        }
+        cnt = 0;
+    }
+
+    cout << endl;
+    clock_t end = clock();
+    cout << "prime2 걸린시간 : ";
+    cout << (end - start) << endl;
+}
+
+void prime3() // 에라토스테네스
+{
+    int a = 0, cnt = 0;
+    int prime3[size] = {};
+
+   // cin >> num;
+
+    clock_t start = clock();
+    prime3[a++] = 2;
+    prime3[a++] = 3;
+    cout << prime3[a - 2];
+    cout << prime3[a - 1];
+    for (int i = 5; i < num; i += 2)
+    {
+        for (int j = 2; prime3[j - 2] *prime3[j - 2] < i; j++)
+        {
+            if (prime3[j - 2] == 0)
+            {
+                break;
+            }
+            if (i % prime3[j-2] == 0)
+                cnt++;
+        }
+        if (cnt == 0)
+        {
+            cout.width(5);
+            if (a % 5 == 0)
+                cout << endl;
+
+            prime3[a++] = i;
+            cout << prime3[a - 1];
+        }
+        cnt = 0;
+    }
+    cout << endl;
+    clock_t end = clock();
+    cout << "prime3 걸린시간 : ";
+    cout << (end - start) << endl;
+}
