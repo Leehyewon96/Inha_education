@@ -1,0 +1,54 @@
+/*
+100 100 사물함 학생
+s1 : 모든 사물함을 연다.
+s2: L2부터 하나씩 건너 뛰면서 닫음
+s3 : L3부터 세번째 사물함 마다 상태 변경
+s4 :L4부터 네번째 마다 상태 변경
+*/
+
+
+#include <iostream>
+using namespace std;
+
+bool openclose[101] = {0};
+
+void output();
+void print();
+
+int main()
+{
+    output();
+    print();
+
+    return 0;
+}
+
+void output()
+{
+    int i = 1;
+    int j;
+
+    while(i <= 100)
+    {
+        j = 1;
+        while (i*j<=100)
+        {
+            if(openclose[i*j] == false)
+                openclose[i * j] = true;
+            else
+                openclose[i * j] = false;
+
+            j++;
+        }
+        i++;
+    }
+}
+
+void print()
+{
+    for (int i = 0; i <= 100; i++) //i번째 학생
+    {
+        if (openclose[i] == true)
+            cout << "L" << i << endl;
+    }
+}
