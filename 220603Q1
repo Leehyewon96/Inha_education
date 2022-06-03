@@ -1,0 +1,123 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <ctime>
+using namespace std;
+
+void Input(string answer, char input);
+string openList();
+
+string tempAnswer;
+
+int fCnt = 0; // 실패 횟수
+int sCnt = 0; // 성공 횟수
+
+int main()
+{
+	srand(time(NULL));
+
+	string answer = openList(); // 정답단어 결정하기
+
+	for (int i = 0; i < answer.length(); i++)
+	{
+		tempAnswer.push_back('*');
+	}
+
+	int tryCnt = 0;
+	do
+	{
+		tryCnt++; // 도전 횟수
+
+		//정답 한글자 입력받기
+		char input;
+
+		cout << "단어중 한 글자를 입력하시오. " << tempAnswer << " > ";
+		cin >> input;
+
+		//확인하기
+		Input(answer, input);
+	} while (answer.length() != sCnt);
+
+	cout << "총 " << fCnt << "번 실패 " << tryCnt << "번 만에 정답! " << answer << endl;
+	return 0;
+}
+
+string openList()
+{
+	int topic, text_line = 0, random;
+	cout << "게임 주제를 고르세요. (1)색깔 (2)동물 " << endl;
+	cin >> topic;
+
+	ifstream iFile;
+	switch (topic)
+	{
+	case 1:
+		cout << "1번 색깔 주제를 선택하셨습니다." << endl;
+		iFile.open("List_Colors.txt");
+		while (!iFile.eof())
+		{
+			string str;
+			getline(iFile, str);
+			text_line++;
+		}
+		iFile.close();
+		iFile.open("List_Colors.txt");
+		break;
+	case 2:
+		cout << "2번 동물 주제를 선택하셨습니다." << endl;
+		iFile.open("List_Animals.txt");
+		while (!iFile.eof())
+		{
+			string str;
+			getline(iFile, str);
+			text_line++;
+		}
+		iFile.close();
+		iFile.open("List_Animals.txt");
+		break;
+	}
+
+	random = rand() % text_line;
+
+	string str2;
+	for (int i = 0; i < random; i++)
+	{
+		getline(iFile, str2);
+	}
+
+	return str2;
+}
+
+void Input(string answer, char input)
+{
+	//같은지 검사해서 몇번째 글자와 같은지 판단하기
+	int cnt = 0;
+	for (int i = 0; i < answer.length(); i++)
+	{
+		if (input == answer[i])
+		{
+			cnt++;
+			sCnt++;
+			if (tempAnswer[i] == answer[i])
+			{
+				cnt--;
+				sCnt--;
+				cout << "이미 입력한 문자입니다." << endl;
+				return;
+			}
+			tempAnswer[i] = answer[i];
+		}
+	}
+
+	//같은 글자 표시하기
+	if (cnt > 0)
+	{
+		cout << tempAnswer << endl;
+	}
+	else
+	{
+		fCnt++;
+		cout << input << "은 단어에 포함되지 않습니다." << endl;
+	}
+}
