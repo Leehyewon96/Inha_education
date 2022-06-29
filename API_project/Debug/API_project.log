@@ -1,0 +1,41 @@
+﻿  API_project.cpp
+C:\Users\Admin\source\repos\API_project\API_project.cpp(117,47): warning C4302: '형식 캐스트': 'LPWSTR'에서 'WORD'(으)로 잘립니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(122,52): warning C4302: '형식 캐스트': 'LPWSTR'에서 'WORD'(으)로 잘립니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(212,31): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(406,31): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(556,31): warning C4244: '초기화 중': 'double'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(570,26): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(600,34): warning C4244: '초기화 중': 'double'에서 'unsigned int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(613,29): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(620,140): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(620,104): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(620,68): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(620,32): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(639,23): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(641,27): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(643,29): warning C4018: '>=': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(728,100): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(728,78): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(732,100): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(732,78): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(736,105): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(736,83): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(748,115): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(748,81): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(752,115): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(752,81): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(756,120): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(756,86): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(789,100): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(789,78): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(793,100): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(793,78): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(797,105): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(797,83): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(809,115): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(809,81): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(813,115): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(813,81): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(817,120): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\API_project\API_project.cpp(817,86): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  API_project.vcxproj -> C:\Users\Admin\source\repos\API_project\Debug\API_project.exe
