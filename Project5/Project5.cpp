@@ -32,11 +32,18 @@ int Run_Frame_Max = 0;
 int Run_Frame_Min = 0;
 int curFrame = 0;
 
+HBITMAP hDoubleBufferImage;
+
+
+
 void CreateBitmap();
 void DrawBitmap(HDC hdc);
+void DrawBitmapDoubleBuffering(HWND hWnd, HDC hdc);
+
 void DeleteBitmap();
 void UpdateFrame(HWND hWnd);
 void DrawRectText(HDC hdc);
+VOID CALLBACK TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
 
 static RECT rcClient;
 
@@ -168,23 +175,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_CREATE:
         GetClientRect(hWnd, &rcClient);
-        SetTimer(hWnd, 1, 100, NULL);
+        SetTimer(hWnd, 1, 0, TimerProc);
         CreateBitmap();
-        break;
-    case WM_TIMER:
-        if (wParam == 1) // 충돌체크 타이머
-        {
-            UpdateFrame(hWnd);
-        }
-        InvalidateRect(hWnd, NULL, TRUE);
         break;
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
 
-
-            DrawBitmap(hdc);
+            DrawBitmapDoubleBuffering(hWnd, hdc);
+            //DrawBitmap(hdc);
 
             // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
 
@@ -312,4 +312,82 @@ void DrawRectText(HDC hdc)
     TextOut(hdc, 10, yPos, strTest, _tcslen(strTest));
     yPos += 5;
     if (yPos > rcClient.bottom) yPos = 0;
+}
+
+void DrawBitmapDoubleBuffering(HWND hWnd, HDC hdc)
+{
+    //>>
+    HDC hMemDC;
+    HBITMAP hOldBitmap;
+    int bx, by;
+    //<<
+    HDC hMemDC2;
+    HBITMAP hOldBitmap2;
+
+    hMemDC = CreateCompatibleDC(hdc);
+    if (hDoubleBufferImage == NULL)
+        hDoubleBufferImage = CreateCompatibleBitmap(hdc, rcClient.right, rcClient.bottom);
+
+    hOldBitmap = (HBITMAP)SelectObject(hMemDC, hDoubleBufferImage);
+
+    {
+        hMemDC2 = CreateCompatibleDC(hMemDC);
+        hOldBitmap2 = (HBITMAP)SelectObject(hMemDC2, hBackImage);
+        bx = bitBack.bmWidth;
+        by = bitBack.bmHeight;
+
+        BitBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, SRCCOPY);
+        //        시작위치               사진에서 출력할 위치
+        StretchBlt(hMemDC, 700, 0, 200, 200, hMemDC2, 0, 0, bx, by, SRCCOPY);
+
+        SelectObject(hMemDC2, hOldBitmap2);
+
+        DeleteDC(hMemDC2);
+    }
+
+    {
+        //sigong
+        hMemDC2 = CreateCompatibleDC(hMemDC);
+        hOldBitmap2 = (HBITMAP)SelectObject(hMemDC2, hSigongImage);
+        bx = bitSigong.bmWidth;
+        by = bitSigong.bmHeight;
+
+        TransparentBlt(hMemDC, 200, 200, bx, by, hMemDC2, 0, 0, bx, by, RGB(255, 0, 255));
+        //BitBlt(hdc, 200, 200, bx, by, hMemDC, 0, 0, SRCCOPY);
+        //        시작위치               사진에서 출력할 위치
+        //StretchBlt(hdc, 700, 0, 200, 200, hMemDC, 0, 0, bx, by, SRCCOPY);
+
+        SelectObject(hMemDC2, hOldBitmap2);
+
+        DeleteDC(hMemDC2);
+    }
+
+    {
+        //ani
+        hMemDC2 = CreateCompatibleDC(hMemDC);
+        hOldBitmap2 = (HBITMAP)SelectObject(hMemDC2, hAniImage);
+        bx = bitAni.bmWidth / 16;
+        by = bitAni.bmHeight / 2;
+
+        int xStart = curFrame * bx;
+        int yStart = 0;
+        TransparentBlt(hMemDC, 200, 400, bx, by, hMemDC2, xStart, yStart, bx, by, RGB(255, 0, 255));
+        //BitBlt(hdc, 200, 200, bx, by, hMemDC, 0, 0, SRCCOPY);
+        //        시작위치               사진에서 출력할 위치
+        //StretchBlt(hdc, 700, 0, 200, 200, hMemDC, 0, 0, bx, by, SRCCOPY);
+
+        SelectObject(hMemDC2, hOldBitmap2);
+
+        DeleteDC(hMemDC2);
+    }
+
+    BitBlt(hdc, 0, 0, rcClient.right, rcClient.bottom, hMemDC, 0, 0, SRCCOPY);
+    SelectObject(hMemDC, hOldBitmap);
+    DeleteDC(hMemDC);
+}
+
+VOID CALLBACK TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+{
+    UpdateFrame(hWnd);
+    InvalidateRect(hWnd, NULL, false);
 }
