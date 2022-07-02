@@ -13,15 +13,22 @@
 #define IDC_GAME1                       109
 #define IDR_MAINFRAME                   128
 #define IDD_ENTER_ID                    129
-#define IDD_DIALOG_END                  130
+#define IDD_END                         130
 #define IDC_EDIT_ID                     1000
 #define IDC_STATIC_ID                   1002
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTON_ENTER_ID             1003
+#define IDC_BUTTON_RESTART              1013
 #define IDC_STATIC_CREATE_ID            1004
+#define IDC_BUTTON_END                  1004
 #define IDC_BUTTON_START                1005
-#define IDC_EDIT_CURSCORE               1005
-#define IDC_STATIC_CURSCORE             1006
+#define IDC_STATIC_SCORE                1006
+#define IDC_STATIC_SCORE2               1007
+#define IDC_EDIT_CURSCORE               1009
+#define IDC_EDIT_CURSCORE2              1010
+#define IDC_EDIT_TOTAL                  1010
+#define IDC_STATIC_CUR                  1011
+#define IDC_STATIC_TOP                  1012
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -31,7 +38,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1007
+#define _APS_NEXT_CONTROL_VALUE         1013
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

@@ -5,14 +5,16 @@ Circle::Circle()
 {
 
 }
-Circle::Circle(double X, double Y)
+Circle::Circle(double X, double Y, double lX, double lY)
 {
 	x = X;
 	y = Y;
 	radius = 5;
 	speed = 20;
+	LookX = lX;
+	LookY = lY;
 	Object::type = "circle";
-	Object::conflict = false;
+	Object::conflict = 0;
 }
 Circle::~Circle()
 {

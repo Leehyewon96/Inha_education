@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
+#include <locale.h>
+#include <tchar.h>
 #include "framework.h"
 #include "game1.h"
 #include "turret.h"
@@ -32,18 +34,20 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 TCHAR word[128];
 vector<Object*> objectArr;
 vector<int> score;
+vector<DefenseWall> defenseWall;
+vector<int> defense_conflict_num;
 static int timer = 0;
 static RECT rcClient;
 Turret turret1(720, 720); 
 static int playing = 0;
 static int pause = 0;
-static int defense_num = 15;
+static int defense_num = 14;
 static int top_score = 0;
 static int cur_score = 0;
 static int big = 5;
 static int mid = 3;
 static int small = 1;
-static int restart = 0;
+static int restart = -1;
 static int launch_delay = 0; // 발사 딜레이
 
 //Turret turret1(rcClient.right / 2.0, rcClient.bottom - 60);
@@ -52,6 +56,7 @@ static int launch_delay = 0; // 발사 딜레이
 BOOL CALLBACK Dlg_Proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 void DrawRectText(HDC hdc);
 // ===============이혜원의 게임========================
+
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -170,6 +175,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     GetClientRect(hWnd, &rcClient);
 
+
+
+
     //memset(&conflict, false, sizeof(bool));
     switch (message)
     {
@@ -187,8 +195,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetTimer(hWnd, 2, 1500, NULL);
             SetTimer(hWnd, 3, 50, NULL);
             SetTimer(hWnd, 4, 1000, NULL);
-
-            
+            SetTimer(hWnd, 5, 50, NULL);
         }
         break;
     case WM_TIMER:
@@ -206,15 +213,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     {
                         playing = 2;
                         objectArr.clear();
+                        DialogBox(hInst, MAKEINTRESOURCE(IDD_END), hWnd, Dlg_Proc);
                         break;
                     }
+                    ////디펜스 없는곳으로 떨어지거나 디펜스가 다 사라지면 게임오버
+                    //if (defense_num == 0 || star_temp->getY() == rcClient.bottom)
+                    //{
+                    //    playing = 2;
+                    //    objectArr.clear();
+                    //}
                 }
 
-                if (objectArr[i]->getType() == "circle")
+                if (objectArr[i]->getType() == "circle") // 총알 발사
                 {
                     Circle* circle_temp = dynamic_cast<Circle*>(objectArr[i]);
-                    circle_temp->setX(objectArr[i]->getX() + objectArr[i]->getSpeed() * turret1.getLookX());
-                    circle_temp->setY(objectArr[i]->getY() + objectArr[i]->getSpeed() * turret1.getLookY());
+                    circle_temp->setX(objectArr[i]->getX() + objectArr[i]->getSpeed() * circle_temp->getLookX());
+                    circle_temp->setY(objectArr[i]->getY() + objectArr[i]->getSpeed() * circle_temp->getLookY());
 
                     //장애물 조준판정
                     if (objectArr[i]->getType() == "circle")
@@ -250,51 +264,68 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             }
                         }
                     }
-
-                    
                 }
             }
         }
-        if (wParam == 2 && playing == 1) // 1번 타이머
+        if (wParam == 2 && playing == 1) // 별생성 타이머
         {
             objectArr.push_back(new Star2D(rand() % rcClient.right, 10));
         }
-        if (wParam == 3 && playing == 1) // 1번 타이머
+        if (wParam == 3 && playing == 1) // 디펜스 충돌판정 타이머
         {
-            
             for (int i = 0; i < objectArr.size(); i++)
             {
                 //디펜스월 장애물 충돌판정
                 if (objectArr[i]->getType() == "defense")
                 {
                     DefenseWall* defense_temp = dynamic_cast<DefenseWall*>(objectArr[i]);
-
+        
                     for (int j = 0; j < objectArr.size(); j++)
                     {
                         if (objectArr[j]->getType() != "defense")
                         {
                             double distance = defense_temp->getY() - objectArr[j]->getY();
                             double limit = objectArr[j]->getRadius() + defense_temp->getHeight() / 2.0;
-                            if (distance <= limit && defense_temp->getX() - defense_temp->getWidth()/2.0 <= objectArr[j]->getX() && defense_temp->getX() + defense_temp->getWidth() / 2.0 >= objectArr[j]->getX())
+                            if (distance <= limit && defense_temp->getX() - defense_temp->getWidth() / 2.0 <= objectArr[j]->getX() && defense_temp->getX() + defense_temp->getWidth() / 2.0 >= objectArr[j]->getX())
                             {
-                                objectArr.erase(objectArr.begin() + i);
-                                if (i < j)
-                                {
-                                    objectArr.erase(objectArr.begin() + j - 1);
-                                }
-                                else
+                                //디펜스당 충돌 횟수 저장
+                                defense_temp->setConflict(defense_temp->getConflict() + 1);
+
+                                //1번 충돌하면 블루, 2번 그린, 3번 충돌시 레드
+                                if (defense_temp->getConflict() == 3)
                                 {
                                     objectArr.erase(objectArr.begin() + j);
+                                    defense_temp->setColor("red");
                                 }
-                                defense_num--;
-                                if (defense_num == 0)
+                                else if (defense_temp->getConflict() == 2)
+                                {
+                                    objectArr.erase(objectArr.begin() + j);
+                                    defense_temp->setColor("green");
+                                }
+                                else if (defense_temp->getConflict() == 1)
+                                {
+                                    objectArr.erase(objectArr.begin() + j);
+                                    defense_temp->setColor("blue");
+                                }
+                                else if (defense_temp->getConflict() == 4)//4번 충돌시 해당 디펜스 삭제
+                                {
+                                    defense_num--;
+                                    objectArr.erase(objectArr.begin() + i);
+                                    if (j < i)
+                                    {
+                                        objectArr.erase(objectArr.begin() + j - 1);
+                                    }
+                                    else
+                                    {
+                                        objectArr.erase(objectArr.begin() + j);
+                                    }
+                                }
+
+                                //디펜스 없는곳으로 떨어지거나 디펜스가 다 사라지면 게임오버
+                                if (defense_num == 0 || objectArr[j]->getY() == rcClient.bottom)
                                 {
                                     playing = 2;
                                     objectArr.clear();
-
-
-
-
                                 }
                                 break;
                             }
@@ -307,6 +338,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             launch_delay = 0;
             timer = 0;
+        }
+        if (wParam == 5 && restart == 0)
+        {
+            restart = -1;
+            DialogBox(hInst, MAKEINTRESOURCE(IDD_ENTER_ID), hWnd, Dlg_Proc);
+
+            //디펜스월 생성
+            double temp_width = 14;
+            for (int i = 0; i < temp_width; i++)
+            {
+                objectArr.push_back(new DefenseWall((turret1.getWidth()) * i + turret1.getWidth() / 2.0, rcClient.bottom - 5.0, turret1.getWidth(), 10));
+            }
+            SetTimer(hWnd, 1, 50, NULL);
+            SetTimer(hWnd, 2, 1500, NULL);
+            SetTimer(hWnd, 3, 50, NULL);
+            SetTimer(hWnd, 4, 1000, NULL);
         }
         InvalidateRect(hWnd, NULL, TRUE);
         break;
@@ -336,9 +383,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             {
                 turret1.Draw(hdc);
                 DrawRectText(hdc);
+
                 TCHAR str[50];
                 wsprintf(str, TEXT("현재 점수 : %d"), cur_score);
                 TextOut(hdc, 150, 0, str, lstrlen(str));
+
                 for (int i = 0; i < objectArr.size(); i++)
                 {
                     if (objectArr[i]->getType() == "circle")
@@ -349,20 +398,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (objectArr[i]->getType() == "star")
                     {
                         Star2D* star_temp = dynamic_cast<Star2D*>(objectArr[i]);
-                        //star_temp->Draw(hdc);
-                        if (objectArr[i]->getConflict() == true)
+                        star_temp->Draw(hdc);
+                        /*if (objectArr[i]->getConflict() == true)
                         {
                             star_temp->ColorDraw(hdc);
                         }
                         else
                         {
                             star_temp->Draw(hdc);
-                        }
+                        }*/
                     }
                     if (objectArr[i]->getType() == "defense")
                     {
                         DefenseWall* defense_temp = dynamic_cast<DefenseWall*>(objectArr[i]);
-                        defense_temp->Draw(hdc);
+                        if (defense_temp->getColor() == "red")
+                        {
+                            defense_temp->ColorDraw(hdc, 255, 0, 0);
+                        }
+                        else if (defense_temp->getColor() == "green")
+                        {
+                            defense_temp->ColorDraw(hdc, 0, 255, 0);
+                        }
+                        else if (defense_temp->getColor() == "blue")
+                        {
+                            defense_temp->ColorDraw(hdc, 0, 0, 255);
+                        }
+                        else
+                        {
+                            defense_temp->Draw(hdc);
+                        }
                     }
                 }
             }
@@ -438,7 +502,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 {
                     if (launch_delay <= 5)
                     {
-                        objectArr.push_back(new Circle(turret1.getX() + 100.0 * turret1.getLookX(), turret1.getY() + 100.0 * turret1.getLookY()));
+
+                        objectArr.push_back(new Circle(turret1.getX() + 100.0 * turret1.getLookX(), turret1.getY() + 100.0 * turret1.getLookY(), turret1.getLookX(), turret1.getLookY()));
+                        
+
+
                         launch_delay++;
                     }
                     else
@@ -522,14 +590,36 @@ BOOL CALLBACK Dlg_Proc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
     {
     case WM_INITDIALOG:
     {
-        HWND hBtn = GetDlgItem(hDlg, IDD_ENTER_ID);
-        EnableWindow(hBtn, FALSE);
+        if (playing == 0)
+        {
+            HWND hBtn = GetDlgItem(hDlg, IDD_ENTER_ID);
+            EnableWindow(hBtn, FALSE);
+        }
+        else if (playing == 2)
+        {
+            HWND hBtn = GetDlgItem(hDlg, IDD_END);
+            EnableWindow(hBtn, FALSE);
+
+            //TCHAR str1[50];
+            wstring sc1 = to_wstring(cur_score);
+            sc1 += _T("점");
+            SetDlgItemText(hDlg, IDC_STATIC_CUR, sc1.c_str());
+            //GetDlgItemText(hDlg, IDC_STATIC_CUR, sc1, 50);
+            //SetDlgItemText(hDlg, IDC_EDIT_CURSCORE, sc1);
+
+            //TCHAR sc2[50];
+            wstring sc2 = to_wstring(top_score);
+            sc2 += _T("점");
+            //wsprintf(sc2, TEXT("Top Score : %d"), top_score);
+            SetDlgItemText(hDlg, IDC_STATIC_TOP, sc2.c_str());
+            //GetDlgItemText(hDlg, IDC_STATIC_TOP, sc1, 50);
+            //SetDlgItemText(hDlg, IDC_EDIT_TOTAL, sc2);
+        }
 
     }
     return TRUE;
 
     case WM_COMMAND:
-        
         switch (LOWORD(wParam))
         {
         case IDC_BUTTON_ENTER_ID:
@@ -539,24 +629,46 @@ BOOL CALLBACK Dlg_Proc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
                 //대화상자 종료함수
                 //EndDialog(hDlg, LOWORD(wParam));
                 //return TRUE;
-
                 SetDlgItemText(hDlg, IDC_STATIC_CREATE_ID, _T("아이디가 생성되었습니다."));
+            
             }
             break;
         case IDC_BUTTON_START:
         {
-            if (word[0] == '\0')
+            if (playing == 0 || playing == 1)
             {
-                SetDlgItemText(hDlg, IDC_STATIC_CREATE_ID, _T("아이디를 입력하세요."));
-                break;
+                if (word[0] == '\0')
+                {
+                    SetDlgItemText(hDlg, IDC_STATIC_CREATE_ID, _T("아이디를 입력하세요."));
+                }
             }
+            turret1.setAngle(270.0 / 180.0 * 3.14159);
+            cur_score = 0;
             playing = 1;
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
         }
+        case IDC_BUTTON_RESTART:
+        {
+            if (playing == 2)
+            {
+                //playing = 1;
+                restart = 0;
+                EndDialog(hDlg, LOWORD(wParam));
+                return (INT_PTR)TRUE;
+            }
+        }
+        case IDC_BUTTON_END:
+        {
+            if (playing == 2)
+            {
+                EndDialog(hDlg, LOWORD(wParam));
+                PostQuitMessage(0);
+                return (INT_PTR)TRUE;
+            }
+        }
         break;
         }
-       
     }
     return (INT_PTR)FALSE;
 }
@@ -568,6 +680,91 @@ void DrawRectText(HDC hdc)
     TextOut(hdc, 10, yPos, strTest, _tcslen(strTest));
     TextOut(hdc, 70, yPos, word, _tcslen(word));
 }
+
+//BOOL CALLBACK Dlg_Proc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
+//{
+//
+//    UNREFERENCED_PARAMETER(lParam);
+//    switch (iMsg)
+//    {
+//    case WM_INITDIALOG:
+//    {
+//        HWND hBtn = GetDlgItem(hDlg, IDD_ENTER_ID);
+//        EnableWindow(hBtn, FALSE);
+//
+//    }
+//    return TRUE;
+//
+//    case WM_COMMAND:
+//
+//        switch (LOWORD(wParam))
+//        {
+//        case IDC_BUTTON_ENTER_ID:
+//        {
+//            GetDlgItemText(hDlg, IDC_EDIT_ID, word, 128);
+//            SetDlgItemText(hDlg, IDC_EDIT_ID, word);
+//            //대화상자 종료함수
+//            //EndDialog(hDlg, LOWORD(wParam));
+//            //return TRUE;
+//            SetDlgItemText(hDlg, IDC_STATIC_CREATE_ID, _T("아이디가 생성되었습니다."));
+//        }
+//        break;
+//        case IDC_BUTTON_START:
+//        {
+//            if (word[0] == '\0')
+//            {
+//                SetDlgItemText(hDlg, IDC_STATIC_CREATE_ID, _T("아이디를 입력하세요."));
+//                break;
+//            }
+//            playing = 1;
+//            EndDialog(hDlg, LOWORD(wParam));
+//            return (INT_PTR)TRUE;
+//        }
+//        break;
+//        }
+//
+//    }
+//    return (INT_PTR)FALSE;
+//}
+
+//int Input_ID(TCHAR word)
+//{
+//    string OutputFile;
+//
+//    OutputFile = "id.txt";
+//
+//    ofstream ofile(OutputFile.c_str(), ios::binary);
+//
+//    //마지막 글자까지 읽기 필요
+//    TCHAR ch;
+//    /*while (ch != '\0')
+//    {
+//        OutputFile.get(ch);
+//
+//        if (ch != '\0')
+//            break;
+//
+//        ofile << (char)(ch - key);
+//    }*/
+//
+//    ofile << word;
+//
+//    ofile.close();
+//}
+
+//int Input_Score(int score)
+//{
+//    string OutputFile;
+//
+//    OutputFile = "id.txt";
+//
+//    ofstream ofile(OutputFile.c_str(), ios::binary);
+//
+//    //마지막 글자까지 읽어서 커서 옮기기 필요
+//    ofile << score;
+//
+//    ofile.close();
+//}
 
 //void sort_Top3(vector<int> vec)
 //{
@@ -612,4 +809,45 @@ void DrawRectText(HDC hdc)
 //    SelectObject(hdc, oldBrush);
 //    DeleteObject(hBrush);
 //    TextOut(hdc, 400, 600, TEXT("LEFT"), 4);
+//}
+
+
+//if (wParam == 3 && playing == 1) // 디펜스 충돌판정 타이머
+//{
+//    for (int i = 0; i < objectArr.size(); i++)
+//    {
+//        //디펜스월 장애물 충돌판정
+//        if (objectArr[i]->getType() == "defense")
+//        {
+//            DefenseWall* defense_temp = dynamic_cast<DefenseWall*>(objectArr[i]);
+//
+//            for (int j = 0; j < objectArr.size(); j++)
+//            {
+//                if (objectArr[j]->getType() != "defense")
+//                {
+//                    double distance = defense_temp->getY() - objectArr[j]->getY();
+//                    double limit = objectArr[j]->getRadius() + defense_temp->getHeight() / 2.0;
+//                    if (distance <= limit && defense_temp->getX() - defense_temp->getWidth() / 2.0 <= objectArr[j]->getX() && defense_temp->getX() + defense_temp->getWidth() / 2.0 >= objectArr[j]->getX())
+//                    {
+//                        objectArr.erase(objectArr.begin() + i);
+//                        if (i < j)
+//                        {
+//                            objectArr.erase(objectArr.begin() + j - 1);
+//                        }
+//                        else
+//                        {
+//                            objectArr.erase(objectArr.begin() + j);
+//                        }
+//                        defense_num--;
+//                        if (defense_num == 0)
+//                        {
+//                            playing = 2;
+//                            objectArr.clear();
+//                        }
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//    }
 //}

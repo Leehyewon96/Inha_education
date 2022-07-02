@@ -21,7 +21,7 @@ Star2D::Star2D(int X, int Y)
 	lookY = speed * sin(90);
 	//lookX = (rand() % 81 + 20) / 100.0;
 	//lookY = (rand() % 81 + 20) / 100.0;
-	Object::conflict = false;
+	Object::conflict = 0;
 
 
 	double temp_angle = rand() % 360;
