@@ -8,6 +8,7 @@
 #include <fstream>
 #include <locale.h>
 #include <tchar.h>
+#include <algorithm>
 #include "framework.h"
 #include "game1.h"
 #include "turret.h"
@@ -55,6 +56,11 @@ static int launch_delay = 0; // 발사 딜레이
 //함수선언
 BOOL CALLBACK Dlg_Proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 void DrawRectText(HDC hdc);
+void Input_ID(TCHAR word[]);
+bool compare(const pair<string, string>& a, const pair<string, string>& b);
+
+vector <pair<string, string>> ID_SCORE_PAIR;
+
 // ===============이혜원의 게임========================
 
 
@@ -310,8 +316,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                                 else if (defense_temp->getConflict() == 4)//4번 충돌시 해당 디펜스 삭제
                                 {
                                     defense_num--;
-                                    objectArr.erase(objectArr.begin() + i);
-                                    if (j < i)
+                                    objectArr.erase(objectArr.begin() + i); //디펜스 삭제
+                                    if (j < i) //해당 목표물 삭제
                                     {
                                         objectArr.erase(objectArr.begin() + j - 1);
                                     }
@@ -319,6 +325,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                                     {
                                         objectArr.erase(objectArr.begin() + j);
                                     }
+                                    break;
                                 }
 
                                 //디펜스 없는곳으로 떨어지거나 디펜스가 다 사라지면 게임오버
@@ -326,8 +333,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                                 {
                                     playing = 2;
                                     objectArr.clear();
+                                    break;
                                 }
-                                break;
+                                
                             }
                         }
                     }
@@ -505,8 +513,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
                         objectArr.push_back(new Circle(turret1.getX() + 100.0 * turret1.getLookX(), turret1.getY() + 100.0 * turret1.getLookY(), turret1.getLookX(), turret1.getLookY()));
                         
-
-
                         launch_delay++;
                     }
                     else
@@ -516,7 +522,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case VK_ESCAPE:
                 {
                     playing = 2; // 일시정지
-                    pause = 1;
+                    //pause = 1;
+                    objectArr.clear();
+                    DialogBox(hInst, MAKEINTRESOURCE(IDD_END), hWnd, Dlg_Proc);
                 }
                 break;
             case VK_RETURN:
@@ -599,21 +607,33 @@ BOOL CALLBACK Dlg_Proc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
         {
             HWND hBtn = GetDlgItem(hDlg, IDD_END);
             EnableWindow(hBtn, FALSE);
+            Input_ID(word);
 
-            //TCHAR str1[50];
+
+
             wstring sc1 = to_wstring(cur_score);
             sc1 += _T("점");
             SetDlgItemText(hDlg, IDC_STATIC_CUR, sc1.c_str());
-            //GetDlgItemText(hDlg, IDC_STATIC_CUR, sc1, 50);
-            //SetDlgItemText(hDlg, IDC_EDIT_CURSCORE, sc1);
 
-            //TCHAR sc2[50];
+            //TCHAR str1[50];
+
+            int size = ID_SCORE_PAIR.size() >= 3 ? 3 : ID_SCORE_PAIR.size();
+            for (int i = 0; i < size; ++i)
+            {
+                wstring temp;
+                temp.assign(ID_SCORE_PAIR[i].first.begin(), ID_SCORE_PAIR[i].first.end());
+                SetDlgItemText(hDlg, IDC_STATIC_TOP_ID1 + i, temp.c_str());
+                SetDlgItemText(hDlg, IDC_STATIC_TOP1+i, to_wstring(stoi(ID_SCORE_PAIR[i].second)).c_str());
+            }
+
+            playing = 0;
+            ID_SCORE_PAIR.clear();
+            /*
+
             wstring sc2 = to_wstring(top_score);
             sc2 += _T("점");
-            //wsprintf(sc2, TEXT("Top Score : %d"), top_score);
-            SetDlgItemText(hDlg, IDC_STATIC_TOP, sc2.c_str());
-            //GetDlgItemText(hDlg, IDC_STATIC_TOP, sc1, 50);
-            //SetDlgItemText(hDlg, IDC_EDIT_TOTAL, sc2);
+            SetDlgItemText(hDlg, IDC_STATIC_TOP1, sc2.c_str());
+            */
         }
 
     }
@@ -650,22 +670,17 @@ BOOL CALLBACK Dlg_Proc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
         }
         case IDC_BUTTON_RESTART:
         {
-            if (playing == 2)
-            {
-                //playing = 1;
-                restart = 0;
-                EndDialog(hDlg, LOWORD(wParam));
-                return (INT_PTR)TRUE;
-            }
+            //playing = 1;
+            restart = 0;
+            EndDialog(hDlg, LOWORD(wParam));
+            //word = _T("");
+            return (INT_PTR)TRUE;
         }
         case IDC_BUTTON_END:
         {
-            if (playing == 2)
-            {
-                EndDialog(hDlg, LOWORD(wParam));
-                PostQuitMessage(0);
-                return (INT_PTR)TRUE;
-            }
+            EndDialog(hDlg, LOWORD(wParam));
+            PostQuitMessage(0);
+            return (INT_PTR)TRUE;
         }
         break;
         }
@@ -680,6 +695,263 @@ void DrawRectText(HDC hdc)
     TextOut(hdc, 10, yPos, strTest, _tcslen(strTest));
     TextOut(hdc, 70, yPos, word, _tcslen(word));
 }
+/*
+BOOL CALLBACK DEF_END_Proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (iMsg)
+    {
+    case WM_INITDIALOG:
+    {
+        string Filename = "Rank.txt"; // 파일 이름
+        fstream Fio; // 파일 열기 위한 변수
+
+        wstring ID_ToConvert = ID; // TCHAR인 ID를 wstring으로 변환
+        string ID_string(ID_ToConvert.begin(), ID_ToConvert.end()); // wstring에서 string으로 변환
+
+        string SCORE_string = to_string(SCORE); // int형인 SCORE를 string 화
+
+        Fio.open(Filename, ios_base::in | ios_base::binary);
+        if (!Fio.is_open()) // 여는 데에 실패했을 때 파일 만들어주고 다시 열기
+        {
+            ofstream makeFile(Filename, ios_base::binary);
+            makeFile << ID_string << '\n' << SCORE_string; // 현재 아이디 입력, 개행 후, 점수 입력.
+            makeFile.close();
+            Fio.close();
+            Fio.open(Filename, ios_base::in | ios_base::binary); // 새로 열기
+        }
+
+        vector <pair<string, string>> RankID_Score; // 넣어줄 ID & SCORE 벡터
+
+        int i = 0, j = 0;
+        bool next_ID = false;
+
+        string temp_ID_SCORE[2]; // 내부 파일의 아이디와 스코어를 담아둘 임시 벡터
+
+        Fio.seekg(0); // 파일 커서 위치 처음으로.
+        while (!Fio.eof()) // 내부 파일 열어서 한 글자 씩 저장하기
+        {
+            char temp_c = Fio.get();
+            if (temp_c == '\r')
+                continue;
+            else if (temp_c == '\n' || temp_c == -1) // 개행 혹은 파일 끝에 다다르면
+            {
+                if (next_ID) // 점수까지 입력 다 받았으면 RankID_Score에 저장하고 임시 벡터 초기화
+                {
+                    ++i;
+                    RankID_Score.push_back(make_pair(temp_ID_SCORE[0], temp_ID_SCORE[1]));
+                    temp_ID_SCORE[0] = "";
+                    temp_ID_SCORE[1] = "";
+                    next_ID = false;
+                }
+                else
+                    next_ID = true;
+                continue;
+            }
+            if (!next_ID)
+                temp_ID_SCORE[0] += temp_c; // 아이디 저장
+            else
+                temp_ID_SCORE[1] += temp_c; // 점수 저장
+        }
+
+        Fio.close(); // 파일은 다 읽었으니 닫아주기
+
+
+        bool isChanged = false;
+        for (int i = 0; i < RankID_Score.size(); ++i)
+        {
+            int score_temp = stoi(RankID_Score[i].second);
+            if (RankID_Score.size() == 3) // 이미 3위까지 입력이 되어있었으면 기존 점수와 비교 후 교환
+            {
+                if (score_temp < SCORE)
+                {
+                    RankID_Score[i].first = ID_string;
+                    RankID_Score[i].second = SCORE_string;
+                    isChanged = true;
+                    break;
+                }
+                else
+                    continue;
+            }
+            else // 3위까지 다 입력이 되어 있는게 아니었다면
+            {
+                if (score_temp < SCORE) // 현재 플레이의 점수가 더 높다면
+                {
+                    RankID_Score.insert(RankID_Score.begin() + i, make_pair(ID_string, SCORE_string));
+                    // 해당 인덱스에 삽입.
+                    isChanged = true;
+                    break;
+                }
+                else if (i == RankID_Score.size() - 1) // 마지막 인덱스면 중간 삽입이 아니라 push_back
+                {
+                    if (RankID_Score[i].first != ID_string || RankID_Score[i].second != SCORE_string)
+                    {
+                        RankID_Score.push_back(make_pair(ID_string, SCORE_string));
+                        isChanged = true;
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (isChanged) // 기존과 조금이라도 변한게 있으면
+        {
+            Fio.open(Filename, ios_base::out | ios_base::binary | ios_base::trunc);
+            // 파일을 열되, 기존 파일 내용을 지우면서 열기
+            for (int i = 0; i < RankID_Score.size(); ++i)
+            {
+                Fio << RankID_Score[i].first << '\n';
+                if (i == RankID_Score.size() - 1) // 마지막
+                    Fio << RankID_Score[i].second;
+                else
+                    Fio << RankID_Score[i].second << '\n';
+            }
+        }
+        Fio.close();
+
+        HWND hBtn = GetDlgItem(hWnd, IDC_PAUSE);
+        SetDlgItemText(hWnd, IDC_EDIT_ID_INPUT_ME, ID); // 현재 내 아이디 입력
+
+        TCHAR score[256];
+        wsprintf(score, _T("%d"), SCORE);
+        SetDlgItemText(hWnd, IDC_EDIT_SCORE_INPUT_ME, score); // 현재 내 점수 입력
+
+        for (int i = 0; i < RankID_Score.size(); ++i) // 입력받은 아이디와 점수를 표기
+        {
+            TCHAR temp[256];
+            RankID_Score[i].first += '\0'; // 기존에 종료문자가 없었으므로 종료문자를 끝에 넣어주기
+            RankID_Score[i].second += '\0';
+            copy(RankID_Score[i].first.begin(), RankID_Score[i].first.end(), temp);
+            SetDlgItemText(hWnd, IDC_EDIT_ID_INPUT_RANK1 + i, temp);
+            copy(RankID_Score[i].second.begin(), RankID_Score[i].second.end(), temp);
+            SetDlgItemText(hWnd, IDC_EDIT_SCORE_INPUT_1 + i, temp);
+        }
+
+
+        EnableWindow(hBtn, FALSE);
+
+        return TRUE;
+    }
+
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDC_CLOSE:
+        case IDCANCEL:
+        {
+            EndDialog(hWnd, LOWORD(wParam));
+            isExit = true;
+            return TRUE;
+        }
+        break;
+        }
+    }
+    return FALSE;
+}
+*/
+void Input_ID(TCHAR word[])
+{
+    string OutputFile;
+
+    wstring ID_ToConvert = word; // TCHAR인 word를 wstring으로 변환
+    string ID_string(ID_ToConvert.begin(), ID_ToConvert.end()); // wstring에서 string으로 변환
+
+    OutputFile = "id.txt";
+    fstream ofile(OutputFile.c_str(), ios::binary | ios::app);
+    ofile << ID_string;
+    ofile << '\n' << cur_score << '\n';
+
+    ofile.close();
+
+    fstream ifile(OutputFile.c_str(), ios::in, ios::binary);
+    //ifile.open(OutputFile.c_str(), ios::in | ios::binary);
+    ifile.seekg(0);
+
+    string ID_TEMP = "", SCORE_TEMP ="";
+    bool Switch = false;
+    while (!ifile.eof())
+    {
+        char ch = ifile.get();
+        if (ch == '\n' || ch == -1)
+        {
+            if(Switch == true)
+            {
+                ID_TEMP += '\0';
+                SCORE_TEMP += '\0';
+                ID_SCORE_PAIR.push_back(make_pair(ID_TEMP, SCORE_TEMP));
+                ID_TEMP = "";
+                SCORE_TEMP = "";
+            }
+            Switch = !Switch;
+            continue;
+        }
+        if (!Switch)
+            ID_TEMP += ch;
+        else
+            SCORE_TEMP += ch;
+    }
+    ifile.close();
+
+    //ID_SCORE_PAIR.push_back(make_pair(ID_string, to_string(cur_score)));
+
+    sort(ID_SCORE_PAIR.begin(), ID_SCORE_PAIR.end(), compare);
+}
+
+bool compare(const pair<string, string>& a, const pair<string, string>& b)
+{
+    int a_score = stoi(a.second);
+    int b_score = stoi(b.second);
+    return a_score > b_score;
+}
+
+
+
+
+
+
+
+//int Input_Score(int score)
+//{
+//    string OutputFile;
+//
+//    OutputFile = "id.txt";
+//
+//    ofstream ofile(OutputFile.c_str(), ios::binary);
+//
+//    //마지막 글자까지 읽어서 커서 옮기기 필요
+//    ofile << score;
+//
+//    ofile.close();
+//}
+
+//void sort_Top3(vector<int> vec)
+//{
+//    for (int i = 0; i < vec.size(); i++)
+//    {
+//        for (int j = 0; j < vec.size(); j++)
+//        {
+//            if (i == j)
+//                break;
+//
+//            if (vec[i] <= vec[j])
+//            {
+//                int temp = vec[i];
+//                vec[i] = vec[j];
+//                vec[j] = temp;
+//            }
+//
+//        }
+//    }
+//}
+
+
+
+
+
+
+
+
+
 
 //BOOL CALLBACK Dlg_Proc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 //{
@@ -727,64 +999,7 @@ void DrawRectText(HDC hdc)
 //    return (INT_PTR)FALSE;
 //}
 
-//int Input_ID(TCHAR word)
-//{
-//    string OutputFile;
-//
-//    OutputFile = "id.txt";
-//
-//    ofstream ofile(OutputFile.c_str(), ios::binary);
-//
-//    //마지막 글자까지 읽기 필요
-//    TCHAR ch;
-//    /*while (ch != '\0')
-//    {
-//        OutputFile.get(ch);
-//
-//        if (ch != '\0')
-//            break;
-//
-//        ofile << (char)(ch - key);
-//    }*/
-//
-//    ofile << word;
-//
-//    ofile.close();
-//}
 
-//int Input_Score(int score)
-//{
-//    string OutputFile;
-//
-//    OutputFile = "id.txt";
-//
-//    ofstream ofile(OutputFile.c_str(), ios::binary);
-//
-//    //마지막 글자까지 읽어서 커서 옮기기 필요
-//    ofile << score;
-//
-//    ofile.close();
-//}
-
-//void sort_Top3(vector<int> vec)
-//{
-//    for (int i = 0; i < vec.size(); i++)
-//    {
-//        for (int j = 0; j < vec.size(); j++)
-//        {
-//            if (i == j)
-//                break;
-//
-//            if (vec[i] <= vec[j])
-//            {
-//                int temp = vec[i];
-//                vec[i] = vec[j];
-//                vec[j] = temp;
-//            }
-//
-//        }
-//    }
-//}
 
 //void DrawRectScore(HDC hdc, int defense_num, int cur_score)
 //{

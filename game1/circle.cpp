@@ -18,7 +18,6 @@ Circle::Circle(double X, double Y, double lX, double lY)
 }
 Circle::~Circle()
 {
-
 }
 void Circle::Draw(HDC hdc)
 {

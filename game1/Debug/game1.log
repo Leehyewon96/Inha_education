@@ -1,8 +1,10 @@
-﻿  game1.cpp
-C:\Users\Admin\source\repos\game1\game1.cpp(204,31): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-C:\Users\Admin\source\repos\game1\game1.cpp(237,43): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-C:\Users\Admin\source\repos\game1\game1.cpp(276,31): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-C:\Users\Admin\source\repos\game1\game1.cpp(283,39): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-C:\Users\Admin\source\repos\game1\game1.cpp(391,35): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-C:\Users\Admin\source\repos\game1\game1.cpp(441,35): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+﻿  circle.cpp
+C:\Users\Admin\source\repos\game1\circle.cpp(24,53): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\game1\circle.cpp(24,41): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\game1\circle.cpp(24,29): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\game1\circle.cpp(24,17): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\game1\circle.cpp(32,53): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\game1\circle.cpp(32,41): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\game1\circle.cpp(32,29): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\Admin\source\repos\game1\circle.cpp(32,17): warning C4244: '인수': 'double'에서 'int'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   game1.vcxproj -> C:\Users\Admin\source\repos\game1\Debug\game1.exe

@@ -18,7 +18,6 @@
 #define IDC_STATIC_ID                   1002
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTON_ENTER_ID             1003
-#define IDC_BUTTON_RESTART              1013
 #define IDC_STATIC_CREATE_ID            1004
 #define IDC_BUTTON_END                  1004
 #define IDC_BUTTON_START                1005
@@ -28,7 +27,13 @@
 #define IDC_EDIT_CURSCORE2              1010
 #define IDC_EDIT_TOTAL                  1010
 #define IDC_STATIC_CUR                  1011
-#define IDC_STATIC_TOP                  1012
+#define IDC_BUTTON_RESTART              1012
+#define IDC_STATIC_TOP1                 1013
+#define IDC_STATIC_TOP2                 1014
+#define IDC_STATIC_TOP3                 1015
+#define IDC_STATIC_TOP_ID1              1016
+#define IDC_STATIC_TOP_ID2              1017
+#define IDC_STATIC_TOP_ID3              1018
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
