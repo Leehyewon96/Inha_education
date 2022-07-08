@@ -1,1 +1,2 @@
 C:\Users\Admin\source\repos\Project5\Debug\Project5.exe
+C:\Users\Admin\source\repos\API_Image_DoubleBuffering\Debug\Project5.exe
