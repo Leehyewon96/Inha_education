@@ -1,5 +1,7 @@
 #pragma once
+#include <vector>
 #include "Windows.h"
+using namespace std;
 
 class Object
 {

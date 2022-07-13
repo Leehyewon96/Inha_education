@@ -11,6 +11,7 @@ Sigong::Sigong(POINT P)
 }
 Sigong::~Sigong()
 {
+
 }
 
 char Sigong::moveConfirm()
@@ -34,5 +35,14 @@ char Sigong::moveConfirm()
 	else if (Right == false && Left == false && Up == false && Down == true)
 	{
 		return 'D';
+	}
+}
+
+void Sigong::drawLine(HDC hdc, vector<POINT> p)
+{
+	for (int i = 0; i < p.size() - 1; i++)
+	{
+		MoveToEx(hdc, p[i].x, p[i].y, NULL);
+		LineTo(hdc, p[i+1].x , p[i+1].y);
 	}
 }

@@ -29,8 +29,7 @@ static RECT rcClient;
 int Run_Frame_Max = 0;
 int Run_Frame_Min = 0;
 int curFrame = 0;
-
-
+HDC hdc;
 
 //격자배열
 static bool check[81][81] = {0};
@@ -240,7 +239,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		HDC hdc = BeginPaint(hWnd, &ps);
 
 		DrawBitmapDoubleBuffering(hWnd, hdc);
-
+        
+        if (sigong.getSpace() == true && sigong.getPvec().size() != 0)
+        {
+            HPEN MyPen, OldPen;
+            MyPen = CreatePen(PS_SOLID, 5, RGB(0, 0, 0));
+            OldPen = (HPEN)SelectObject(hdc, MyPen);
+            sigong.drawLine(hdc, sigong.getPvec());
+            SelectObject(hdc, OldPen);
+            DeleteObject(MyPen);
+        }
 
         /*TCHAR str[50];
         wsprintf(str, TEXT("%d %d"), mousePos.x, mousePos.y);
@@ -305,6 +313,7 @@ void DrawBitmapDoubleBuffering(HWND hWnd, HDC hdc)
     HBITMAP hOldBitmap;
     int bx, by;
     //<<
+
     HDC hMemDC2;
     HBITMAP hOldBitmap2;
 
@@ -337,8 +346,9 @@ void DrawBitmapDoubleBuffering(HWND hWnd, HDC hdc)
         by = bitSigong.bmHeight;
 
         //sigong.setP({ 0 - bx / 2, 0 - by / 2 });
-
         TransparentBlt(hMemDC, sigong.getP().x - bx / 2, sigong.getP().y - by / 2, bx, by, hMemDC2, 0, 0, bx, by, RGB(255, 0, 255));
+        
+            
         //BitBlt(hdc, sigong.getP().x, sigong.getP().y, bx, by, hMemDC, 0, 0, SRCCOPY);
         //        시작위치               사진에서 출력할 위치
         //StretchBlt(hdc, 700, 0, 200, 200, hMemDC, 0, 0, bx, by, SRCCOPY);
@@ -347,6 +357,8 @@ void DrawBitmapDoubleBuffering(HWND hWnd, HDC hdc)
 
         DeleteDC(hMemDC2);
     }
+    
+    
     //Gdi_Draw(hMemDC);
     BitBlt(hdc, 0, 0, rcClient.right, rcClient.bottom, hMemDC, 0, 0, SRCCOPY);
     SelectObject(hMemDC, hOldBitmap);
@@ -377,16 +389,6 @@ void Update()
     //Async의 경우 비동기적인 흐름이다. 그러므로 메시지의 큐를 거치지 않는다.
     
 
-
-    /*for (int i = 0; i < 90; i++)
-    {
-        for (int j = 0; j < 100; j++)
-        {
-            if(check[sigong.getP().x + 10][sigong.getP().y] == true)
-        }
-    }*/
-
-
     //keydown
     if (GetAsyncKeyState(VK_SPACE) & 0x8000)
     {
@@ -395,25 +397,45 @@ void Update()
     if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) && (sigong.moveConfirm() == 'R' || sigong.moveConfirm() == 'A'))
     {
         sigong.setRight(true);
-        if ((sigong.getP().x + 10 <= rcClient.right) && (check[(sigong.getP().x + 10) / 10][sigong.getP().y / 10] == true))
+        if (sigong.getSpace() == true && (sigong.getP().x + 10 <= rcClient.right))
+        {
+            sigong.pushPvec({ sigong.getP().x , sigong.getP().y });
+            sigong.setP({ sigong.getP().x + 10, sigong.getP().y });
+        }
+        else if ((sigong.getP().x + 10 <= rcClient.right) && (check[(sigong.getP().x + 10) / 10][sigong.getP().y / 10] == true))
             sigong.setP({ sigong.getP().x + 10, sigong.getP().y });
     }
     else if ((GetAsyncKeyState(VK_LEFT) & 0x8000) && (sigong.moveConfirm() == 'L' || sigong.moveConfirm() == 'A'))
     {
         sigong.setLeft(true);
-        if ((sigong.getP().x - 10 >= rcClient.left) && (check[(sigong.getP().x - 10) / 10][sigong.getP().y / 10] == true))
+        if (sigong.getSpace() == true && (sigong.getP().x - 10 >= rcClient.left))
+        {
+            sigong.pushPvec({ sigong.getP().x , sigong.getP().y });
+            sigong.setP({ sigong.getP().x - 10, sigong.getP().y });
+        }
+        else if ((sigong.getP().x - 10 >= rcClient.left) && (check[(sigong.getP().x - 10) / 10][sigong.getP().y / 10] == true))
             sigong.setP({ sigong.getP().x - 10, sigong.getP().y });
     }
     else if ((GetAsyncKeyState(VK_UP) & 0x8000) && (sigong.moveConfirm() == 'U' || sigong.moveConfirm() == 'A'))
     {
         sigong.setUp(true);
-        if ((sigong.getP().y - 10 >= rcClient.top) && check[sigong.getP().x / 10][(sigong.getP().y - 10) / 10] == true)
+        if (sigong.getSpace() == true && (sigong.getP().y - 10 >= rcClient.top))
+        {
+            sigong.pushPvec({ sigong.getP().x , sigong.getP().y });
+            sigong.setP({ sigong.getP().x, sigong.getP().y - 10 });
+        }
+        else if ((sigong.getP().y - 10 >= rcClient.top) && check[sigong.getP().x / 10][(sigong.getP().y - 10) / 10] == true)
             sigong.setP({ sigong.getP().x, sigong.getP().y - 10 });
     }
     else if ((GetAsyncKeyState(VK_DOWN) & 0x8000) && (sigong.moveConfirm() == 'D' || sigong.moveConfirm() == 'A'))
     {
         sigong.setDown(true);
-        if ((sigong.getP().y + 5 <= rcClient.bottom) && check[sigong.getP().x / 10][(sigong.getP().y + 10) / 10] == true)
+        if (sigong.getSpace() == true && (sigong.getP().y + 5 <= rcClient.bottom))
+        {
+            sigong.pushPvec({ sigong.getP().x , sigong.getP().y });
+            sigong.setP({ sigong.getP().x, sigong.getP().y + 10 });
+        }
+        else if ((sigong.getP().y + 5 <= rcClient.bottom) && check[sigong.getP().x / 10][(sigong.getP().y + 10) / 10] == true)
             sigong.setP({ sigong.getP().x, sigong.getP().y + 10 });
     }
     
@@ -421,6 +443,12 @@ void Update()
     if (!(GetAsyncKeyState(VK_SPACE) & 0x8000))
     {
         sigong.setSpace(false);
+        if (sigong.getPvec().size() != 0)
+        {
+            if(check[sigong.getP().x / 10][sigong.getP().y / 10] == false)
+                sigong.setP(sigong.getPvec().front());
+        }
+        sigong.clearPvec();
     }
     if (!(GetAsyncKeyState(VK_RIGHT) & 0x8000))
     {
