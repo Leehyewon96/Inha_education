@@ -33,6 +33,7 @@ HDC hdc;
 
 //격자배열
 static bool check[81][81] = {0};
+static bool draw[81][81] = { 0 };
 static bool space = false;
 
 //비트맵 이미지
@@ -54,6 +55,7 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 void Update();
 void DrawBitmapDoubleBuffering(HWND hWnd, HDC hdc);
+void CoverDrawBitmapDoubleBuffering(HWND hWnd, HDC hdc);
 void CreateBitmap();
 VOID CALLBACK TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime);
 void UpdateFrame(HWND hWnd);
@@ -84,8 +86,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
+    //check[0][0] = true;
+    // 
     // << 테두리 1로 바꾸기
-    for (int i = 0; i <= 80; i++)
+    /*for (int i = 0; i <= 80; i++)
     {
         check[i][0] = true;
         check[i][80] = true;
@@ -94,7 +98,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     {
         check[0][j] = true;
         check[80][j] = true;
-    }
+    }*/
+    
     // >>
 
     // 기본 메시지 루프입니다:
@@ -203,10 +208,22 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_DESTROY  - 종료 메시지를 게시하고 반환합니다.
 //
 //
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static int TIMER_IDI = 1;
     static POINT mousePos;
+
+    for (int i = 0; i <= 80; i++)
+    {
+        check[i][0] = true;
+        check[i][80] = true;
+    }
+    for (int j = 0; j <= 80; j++)
+    {
+        check[0][j] = true;
+        check[80][j] = true;
+    }
 
     switch (message)
     {
@@ -239,6 +256,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		HDC hdc = BeginPaint(hWnd, &ps);
 
 		DrawBitmapDoubleBuffering(hWnd, hdc);
+
+        //CoverDrawBitmapDoubleBuffering(hWnd, hdc);
+
         
         if (sigong.getSpace() == true && sigong.getPvec().size() != 0)
         {
@@ -263,7 +283,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_MOUSEMOVE:
         mousePos.x = LOWORD(lParam);
         mousePos.y = HIWORD(lParam);
-        InvalidateRect(hWnd, NULL, TRUE);
+        //InvalidateRect(hWnd, NULL, TRUE);
         break;
     case WM_DESTROY:
         DeleteBitmap();
@@ -312,41 +332,84 @@ void DrawBitmapDoubleBuffering(HWND hWnd, HDC hdc)
     HDC hMemDC;
     HBITMAP hOldBitmap;
     int bx, by;
+    bx = rcClient.right;
+    by = rcClient.bottom;
     //<<
 
     HDC hMemDC2;
     HBITMAP hOldBitmap2;
 
     hMemDC = CreateCompatibleDC(hdc);
+
+    //BitBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, SRCCOPY);
     if (hDoubleBufferImage == NULL)
         hDoubleBufferImage = CreateCompatibleBitmap(hdc, rcClient.right, rcClient.bottom);
 
     hOldBitmap = (HBITMAP)SelectObject(hMemDC, hDoubleBufferImage);
 
+    hMemDC2 = CreateCompatibleDC(hMemDC);
+    //TransparentBlt(hMemDC2, 0, 0, bx, by, hMemDC, 0, 0, bx, by, RGB(100, 200, 0));
+    //hMemDC3 = CreateCompatibleDC(hMemDC);
+    hOldBitmap2 = (HBITMAP)SelectObject(hMemDC2, hBackImage);
+
+    TransparentBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, bx, by, RGB(255, 0, 0));
+    //BitBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, SRCCOPY);
+
+    //TransparentBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, bx, by, RGB(100, 200, 0));
+    SelectObject(hMemDC2, hOldBitmap2);
+    DeleteDC(hMemDC2);
+
     //수지
     {
-        hMemDC2 = CreateCompatibleDC(hMemDC);
-        hOldBitmap2 = (HBITMAP)SelectObject(hMemDC2, hBackImage);
-        bx = rcClient.right;
-        by = rcClient.bottom;
+        hMemDC2 = CreateCompatibleDC(hMemDC); // hMemDC를 복사해서 hMemDC2에 넣어주기
+        hOldBitmap2 = (HBITMAP)SelectObject(hMemDC2, CreateCompatibleBitmap(hdc, rcClient.right, rcClient.bottom)); // 시공 이미지를 hMemDC2에 그려주기
 
-        BitBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, SRCCOPY);
+        //TransparentBlt(hMemDC2, 0, 0, bx, by, hMemDC, 0, 0, bx, by, RGB(100, 200, 0));
+        
+        //BitBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, SRCCOPY);
+        //BitBlt(hMemDC, 0, 0, bx, by, hMemDC3, 0, 0, SRCCOPY);
         //        시작위치    어디까지 출력할건지     사진에서 출력할 위치
+        
+        for (int i = 0; i <= 79; i++)
+        {
+            for (int j = 0; j <= 79; j++)
+            {
+                if (((check[i][j] == false) && (check[i + 1][j] == false) && (check[i][j + 1] == false) && (check[i + 1][j + 1] == false)))
+                {
+                    HBRUSH MyBrush, OldBrush;
+                    MyBrush = CreateSolidBrush(RGB(100, 200, 0));
+                    OldBrush = (HBRUSH)SelectObject(hMemDC2, MyBrush);
+                    HPEN MyPen, OldPen;
+                    MyPen = CreatePen(PS_SOLID, 5, RGB(100, 200, 0));
+                    OldPen = (HPEN)SelectObject(hMemDC2, MyPen);
+                    Rectangle(hMemDC2, i * 10, j * 10, (i + 1) * 10, (j + 1) * 10);
+                    SelectObject(hMemDC2, OldPen);
+                    DeleteObject(MyPen);
+                    SelectObject(hMemDC2, OldBrush);
+                    DeleteObject(MyBrush);
+                }
+            }
+        }
 
-        SelectObject(hMemDC2, hOldBitmap2);
+        TransparentBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, bx, by, RGB(0, 0, 0));
+        //BitBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, SRCCOPY);
 
+        //TransparentBlt(hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, bx, by, RGB(100, 200, 0));
+        DeleteObject(SelectObject(hMemDC2, hOldBitmap2));
         DeleteDC(hMemDC2);
+
+        //DeleteDC(hMemDC3);
     }
 
     {
         //sigong
-        hMemDC2 = CreateCompatibleDC(hMemDC);
-        hOldBitmap2 = (HBITMAP)SelectObject(hMemDC2, hSigongImage);
+        hMemDC2 = CreateCompatibleDC(hMemDC); // hMemDC를 복사해서 hMemDC2에 넣어주기
+        hOldBitmap2 = (HBITMAP)SelectObject(hMemDC2, hSigongImage); // 시공 이미지를 hMemDC2에 그려주기
         bx = bitSigong.bmWidth;
         by = bitSigong.bmHeight;
 
         //sigong.setP({ 0 - bx / 2, 0 - by / 2 });
-        TransparentBlt(hMemDC, sigong.getP().x - bx / 2, sigong.getP().y - by / 2, bx, by, hMemDC2, 0, 0, bx, by, RGB(255, 0, 255));
+        TransparentBlt(hMemDC, sigong.getP().x - bx / 2, sigong.getP().y - by / 2, bx, by, hMemDC2, 0, 0, bx, by, RGB(255, 0, 255)| RGB(255, 0, 0));
         
             
         //BitBlt(hdc, sigong.getP().x, sigong.getP().y, bx, by, hMemDC, 0, 0, SRCCOPY);
@@ -357,12 +420,64 @@ void DrawBitmapDoubleBuffering(HWND hWnd, HDC hdc)
 
         DeleteDC(hMemDC2);
     }
-    
-    
+
     //Gdi_Draw(hMemDC);
     BitBlt(hdc, 0, 0, rcClient.right, rcClient.bottom, hMemDC, 0, 0, SRCCOPY);
     SelectObject(hMemDC, hOldBitmap);
     DeleteDC(hMemDC);
+}
+
+
+
+void CoverDrawBitmapDoubleBuffering(HWND hWnd, HDC hdc)
+{
+    /** 더블버퍼링 시작처리입니다. **/
+    //static HDC hdc, MemDC;
+    static HDC MemDC;
+    static HBITMAP BackBit, oldBackBit;
+    static RECT bufferRT;
+    //MemDC = BeginPaint(hWnd, &ps);
+
+    GetClientRect(hWnd, &bufferRT);
+    hdc = CreateCompatibleDC(MemDC);
+    BackBit = CreateCompatibleBitmap(MemDC, bufferRT.right, bufferRT.bottom);
+    oldBackBit = (HBITMAP)SelectObject(hdc, BackBit);
+    PatBlt(hdc, 0, 0, bufferRT.right, bufferRT.bottom, WHITENESS);
+
+    // TODO: 여기에 그리기 코드를 추가합니다.
+    for (int i = 0; i <= 79; i++)
+    {
+        for (int j = 0; j <= 79; j++)
+        {
+            if ((check[i][j] == false) && (check[i + 1][j] == false) && (check[i][j + 1] == false) && (check[i + 1][j + 1] == false))
+            {
+                HBRUSH MyBrush, OldBrush;
+                MyBrush = CreateSolidBrush(RGB(100, 200, 0));
+                OldBrush = (HBRUSH)SelectObject(MemDC, MyBrush);
+                HPEN MyPen, OldPen;
+                MyPen = CreatePen(PS_SOLID, 5, RGB(100, 200, 0));
+                OldPen = (HPEN)SelectObject(MemDC, MyPen);
+                Rectangle(MemDC, i * 10, j * 10, (i + 1) * 10, (j + 1) * 10);
+                SelectObject(MemDC, OldPen);
+                DeleteObject(MyPen);
+                SelectObject(MemDC, OldBrush);
+                DeleteObject(MyBrush);
+            }
+        }
+    }
+
+    /*for (int i = 0; i < 10; i++) {
+        Rectangle(hdc, rand() % bufferRT.right, rand() % bufferRT.bottom, rand() % bufferRT.right, rand() % bufferRT.bottom);
+        Sleep(30);
+    }*/
+
+    /** 더블버퍼링 끝처리 입니다. **/
+    GetClientRect(hWnd, &bufferRT);
+    BitBlt(MemDC, 0, 0, bufferRT.right, bufferRT.bottom, hdc, 0, 0, SRCCOPY);
+    SelectObject(hdc, oldBackBit);
+    DeleteObject(BackBit);
+    //DeleteDC(hdc);
+    //EndPaint(hWnd, &ps);
 }
 
 VOID CALLBACK TimerProc(HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime)
@@ -388,6 +503,26 @@ void Update()
 
     //Async의 경우 비동기적인 흐름이다. 그러므로 메시지의 큐를 거치지 않는다.
     
+    // << 지나간 면적 true로 바꾸기
+    for (int i = 1; i <= 80; i++)
+    {
+        int j = 1;
+
+        while (j != 80)
+        {
+            if (check[i][j] == true)
+            {
+                for (int k = 1; k < j; k++)
+                {
+                    check[i][k] = true;
+                }
+
+                break;
+            }
+            j++;
+        }
+    }
+    // >>
 
     //keydown
     if (GetAsyncKeyState(VK_SPACE) & 0x8000)
@@ -397,7 +532,7 @@ void Update()
     if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) && (sigong.moveConfirm() == 'R' || sigong.moveConfirm() == 'A'))
     {
         sigong.setRight(true);
-        if (sigong.getSpace() == true && (sigong.getP().x + 10 <= rcClient.right))
+        if (sigong.getSpace() == true && (sigong.getP().x + 10 <= rcClient.right) && draw[(sigong.getP().x + 10) / 10][sigong.getP().y / 10] == false)
         {
             sigong.pushPvec({ sigong.getP().x , sigong.getP().y });
             sigong.setP({ sigong.getP().x + 10, sigong.getP().y });
@@ -408,7 +543,7 @@ void Update()
     else if ((GetAsyncKeyState(VK_LEFT) & 0x8000) && (sigong.moveConfirm() == 'L' || sigong.moveConfirm() == 'A'))
     {
         sigong.setLeft(true);
-        if (sigong.getSpace() == true && (sigong.getP().x - 10 >= rcClient.left))
+        if (sigong.getSpace() == true && (sigong.getP().x - 10 >= rcClient.left) && draw[(sigong.getP().x - 10) / 10][sigong.getP().y / 10] == false)
         {
             sigong.pushPvec({ sigong.getP().x , sigong.getP().y });
             sigong.setP({ sigong.getP().x - 10, sigong.getP().y });
@@ -419,7 +554,7 @@ void Update()
     else if ((GetAsyncKeyState(VK_UP) & 0x8000) && (sigong.moveConfirm() == 'U' || sigong.moveConfirm() == 'A'))
     {
         sigong.setUp(true);
-        if (sigong.getSpace() == true && (sigong.getP().y - 10 >= rcClient.top))
+        if (sigong.getSpace() == true && (sigong.getP().y - 10 >= rcClient.top) && draw[(sigong.getP().x) / 10][(sigong.getP().y - 10) / 10] == false)
         {
             sigong.pushPvec({ sigong.getP().x , sigong.getP().y });
             sigong.setP({ sigong.getP().x, sigong.getP().y - 10 });
@@ -430,7 +565,7 @@ void Update()
     else if ((GetAsyncKeyState(VK_DOWN) & 0x8000) && (sigong.moveConfirm() == 'D' || sigong.moveConfirm() == 'A'))
     {
         sigong.setDown(true);
-        if (sigong.getSpace() == true && (sigong.getP().y + 5 <= rcClient.bottom))
+        if (sigong.getSpace() == true && (sigong.getP().y + 5 <= rcClient.bottom) && draw[(sigong.getP().x) / 10][(sigong.getP().y + 10) / 10] == false)
         {
             sigong.pushPvec({ sigong.getP().x , sigong.getP().y });
             sigong.setP({ sigong.getP().x, sigong.getP().y + 10 });
@@ -445,10 +580,52 @@ void Update()
         sigong.setSpace(false);
         if (sigong.getPvec().size() != 0)
         {
-            if(check[sigong.getP().x / 10][sigong.getP().y / 10] == false)
+            if (check[sigong.getP().x / 10][sigong.getP().y / 10] == false)
                 sigong.setP(sigong.getPvec().front());
+            else
+            {
+                // << 마지막 좌표 저장
+                int cnt = 0;
+                for (int i = 0; i < sigong.getPvec().size(); i++)
+                {
+                    check[sigong.getPvec()[i].x / 10][sigong.getPvec()[i].y / 10] = true; // 간 경로 true로 바꾸기
+
+                    if (sigong.getPvec()[i].x == sigong.getP().x && sigong.getPvec()[i].y == sigong.getP().y)
+                    {
+                        cnt++;
+                    }
+                }
+                if (cnt == 0)
+                {
+                    sigong.pushPvec(sigong.getP());
+                    cnt = 0;
+                }
+                //>>
+
+                // << 지나간 면적 true로 바꾸기
+                /*for (int i = 0; i <= 80; i++)
+                {
+                    int j = 1;
+                    
+                    while (j != 80)
+                    {
+                        if (check[i][j] == true)
+                        {
+                            for (int k = 0; k <= j; k++)
+                            {
+                                check[i][k] == true;
+                            }
+                            break;
+                        }
+                        j++;
+                    }
+                }*/
+                // >>
+            }
+            sigong.clearPvec();
         }
-        sigong.clearPvec();
+        
+        
     }
     if (!(GetAsyncKeyState(VK_RIGHT) & 0x8000))
     {
@@ -473,3 +650,58 @@ void DeleteBitmap()
     DeleteObject(hBackImage);
     DeleteObject(hSigongImage);
 }
+
+
+//폴리곤 좌표 알고리즘
+//    else
+//    {
+//        int cnt = 0;
+//        for (int i = 0; i < sigong.getPvec().size(); i++)
+//        {
+//            check[sigong.getPvec()[i].x / 10][sigong.getPvec()[i].y / 10] = true;
+//
+//            if (sigong.getPvec()[i].x == sigong.getP().x && sigong.getPvec()[i].y == sigong.getP().y)
+//            {
+//                cnt++;
+//            }
+//        }
+//        if (cnt == 0)
+//        {
+//            sigong.pushPvec(sigong.getP());
+//            cnt = 0;
+//        }
+//
+//
+//
+//        double bigX = sigong.getPvec().front().x >= sigong.getPvec().back().x ? sigong.getPvec().front().x : sigong.getPvec().back().x;
+//        double smallX = sigong.getPvec().front().x <= sigong.getPvec().back().x ? sigong.getPvec().front().x : sigong.getPvec().back().x;
+//        double bigY = sigong.getPvec().front().y >= sigong.getPvec().back().y ? sigong.getPvec().front().y : sigong.getPvec().back().y;
+//        double smallY = sigong.getPvec().front().y <= sigong.getPvec().back().y ? sigong.getPvec().front().y : sigong.getPvec().back().y;
+//
+//        vector<POINT> temp;
+//        temp = sigong.getPolyvec();
+//        sigong.clearPolyvec();
+//
+//        sigong.pushPolyvec(sigong.getPvec().front());
+//        for (int i = 0; i < temp.size(); i++)
+//        {
+//            if (temp[i].x >= smallX && temp[i].x <= bigX && temp[i].y >= smallY && temp[i].y <= bigY)
+//            {
+//                temp.erase(temp.begin() + i);
+//            }
+//        }
+//
+//        for (int i = 0; i < temp.size(); i++)
+//        {
+//            sigong.pushPolyvec(temp[i]);
+//        }
+//
+//        for (int i = sigong.getPvec().size() - 1; i >= 1; i--)
+//        {
+//            sigong.pushPolyvec(sigong.getPvec()[i]);
+//        }
+//
+//        //sigong.pushPolyvec(sigong.getPvec().back());
+//    }
+//}
+//sigong.clearPvec();

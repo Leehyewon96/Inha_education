@@ -1,0 +1,56 @@
+ // : 수지 사진 =====================================================
+    hMemDC2 = CreateCompatibleDC(hMemDC);
+    hOldBitmap2 = (HBITMAP)SelectObject(hMemDC2, hBackImage);
+
+    bx = bitBack.bmWidth;
+    by = bitBack.bmHeight;
+
+    BitBlt(hMemDC, 200, 80, bx, by, hMemDC2, 0, 0, SRCCOPY);
+
+    SelectObject(hMemDC2, hOldBitmap2);
+    DeleteDC(hMemDC2);
+
+    // : 투명으로 지워줘야할 이미지 =====================================================
+    
+    hMemDC2 = CreateCompatibleDC(hMemDC);
+
+    // =====================수지를 가릴 공간===================================
+    
+    HPEN hPen, oldPen; // 도형의 테두리 색
+    hPen = CreatePen(PS_SOLID, 1, RGB(112, 146, 190)); // 112 146 190
+
+    oldPen = (HPEN)SelectObject(hMemDC, hPen);
+
+    HBRUSH hBrush, oldBrush; // 도형의 내부 색
+    hBrush = CreateSolidBrush(RGB(112, 146, 190));
+    oldBrush = (HBRUSH)SelectObject(hMemDC, hBrush);
+    
+    POINT* temp = new POINT[BlindScreen.size()];
+    for (int i = 0; i < (signed)BlindScreen.size(); ++i)
+    {
+        temp[i] = BlindScreen[i];
+    }    
+    BlindRegion = CreatePolygonRgn(temp, BlindScreen.size(), WINDING);
+    Polygon(hMemDC, temp, BlindScreen.size());
+    //curColor = GetPixel(hMemDC, temp[0].x, temp[0].y);
+    delete[] temp;
+
+    SelectObject(hMemDC, oldBrush);
+    DeleteObject(hBrush);
+    SelectObject(hMemDC, oldPen);
+    DeleteObject(hPen);
+    
+    SelectObject(hMemDC2, hOldBitmap2);
+    //TransparentBlt(hMemDC, 200, 80, bx, by, hMemDC2, 0, 0, bx, by, RGB(16, 101, 1)); // 특정 색 제거해서 출력하기 + 크기 조절 가능        
+    DeleteDC(hMemDC2);
+
+    
+    // : 플레이어 시공 이미지 회전
+    Gdi_Draw(hMemDC);
+
+    BitBlt(hdc, 0, 0, rcClient.right, rcClient.bottom, hMemDC, 0, 0, SRCCOPY); // 본래 화면으로 옮겨주고 임시 화면 지우기    
+    SelectObject(hMemDC, hOldBitmap);
+    DeleteDC(hMemDC);
+
+    
+}

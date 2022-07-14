@@ -1,2 +1,3 @@
 ﻿  galspanic_hw2.cpp
+C:\Users\Admin\source\repos\galspanic_hw2\galspanic_hw2.cpp(603,35): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
   galspanic_hw2.vcxproj -> C:\Users\Admin\source\repos\galspanic_hw2\Debug\galspanic_hw2.exe
