@@ -1,0 +1,4 @@
+﻿  ConsoleApplication17.cpp
+C:\Users\Admin\source\repos\ConsoleApplication17\ConsoleApplication17.cpp(66,9): warning C4353: 비표준 확장을 사용했습니다. 함수 식으로 상수 0을 사용했습니다.  '__noop' 내장 함수를 대신 사용하십시오.
+C:\Users\Admin\source\repos\ConsoleApplication17\ConsoleApplication17.cpp(44,20): warning C4101: 'i' :참조되지 않은 지역 변수입니다.
+  ConsoleApplication17.vcxproj -> C:\Users\Admin\source\repos\ConsoleApplication17\Debug\ConsoleApplication17.exe
