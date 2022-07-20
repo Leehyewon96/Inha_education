@@ -1,0 +1,485 @@
+// shortest_Route.cpp : 애플리케이션에 대한 진입점을 정의합니다.
+//
+#include <vector>
+#include "framework.h"
+#include "shortest_Route.h"
+using namespace std;
+
+#define MAX_LOADSTRING 100
+
+// 전역 변수:
+HINSTANCE hInst;                                // 현재 인스턴스입니다.
+WCHAR szTitle[MAX_LOADSTRING];                  // 제목 표시줄 텍스트입니다.
+WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름입니다.
+HDC hdc;
+static RECT rc;
+int check[10][10]; // 1 : 시작, 2 : 끝, 3 : 회색
+int g[10][10]; // 1 : 시작, 2 : 끝, 3 : 회색
+static POINT mousePos = {800, 800};
+static POINT BmousePos = { 800, 800 };
+static bool Start_Save = false;
+static POINT Start;
+static bool End_Save = false;
+static POINT End;
+static bool Block_Space = false;
+static bool Block_Save = false;
+static bool endGame = false;
+vector<POINT>Block;
+vector<POINT> visited; //경로 저장
+vector<int> Open_Value;
+vector<POINT> openVec; // 쓸지는 모르겠음
+vector<POINT> closeVec;
+
+// 이 코드 모듈에 포함된 함수의 선언을 전달합니다:
+ATOM                MyRegisterClass(HINSTANCE hInstance);
+BOOL                InitInstance(HINSTANCE, int);
+LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+void gMaker(); //도착지까지의 거리 계산
+void aroundCheck();
+
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
+                     _In_opt_ HINSTANCE hPrevInstance,
+                     _In_ LPWSTR    lpCmdLine,
+                     _In_ int       nCmdShow)
+{
+    UNREFERENCED_PARAMETER(hPrevInstance);
+    UNREFERENCED_PARAMETER(lpCmdLine);
+
+    // TODO: 여기에 코드를 입력합니다.
+
+    // 전역 문자열을 초기화합니다.
+    LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+    LoadStringW(hInstance, IDC_SHORTESTROUTE, szWindowClass, MAX_LOADSTRING);
+    MyRegisterClass(hInstance);
+
+    // 애플리케이션 초기화를 수행합니다:
+    if (!InitInstance (hInstance, nCmdShow))
+    {
+        return FALSE;
+    }
+
+    HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_SHORTESTROUTE));
+
+    MSG msg;
+
+    // 기본 메시지 루프입니다:
+    while (GetMessage(&msg, nullptr, 0, 0))
+    {
+        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
+
+    return (int) msg.wParam;
+}
+
+
+
+//
+//  함수: MyRegisterClass()
+//
+//  용도: 창 클래스를 등록합니다.
+//
+ATOM MyRegisterClass(HINSTANCE hInstance)
+{
+    WNDCLASSEXW wcex;
+
+    wcex.cbSize = sizeof(WNDCLASSEX);
+
+    wcex.style          = CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc    = WndProc;
+    wcex.cbClsExtra     = 0;
+    wcex.cbWndExtra     = 0;
+    wcex.hInstance      = hInstance;
+    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SHORTESTROUTE));
+    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
+    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
+    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_SHORTESTROUTE);
+    wcex.lpszClassName  = szWindowClass;
+    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+    return RegisterClassExW(&wcex);
+}
+
+//
+//   함수: InitInstance(HINSTANCE, int)
+//
+//   용도: 인스턴스 핸들을 저장하고 주 창을 만듭니다.
+//
+//   주석:
+//
+//        이 함수를 통해 인스턴스 핸들을 전역 변수에 저장하고
+//        주 프로그램 창을 만든 다음 표시합니다.
+//
+BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+{
+   hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
+
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+      50, 50, 800, 800, nullptr, nullptr, hInstance, nullptr);
+
+   if (!hWnd)
+   {
+      return FALSE;
+   }
+
+   ShowWindow(hWnd, nCmdShow);
+   UpdateWindow(hWnd);
+
+   return TRUE;
+}
+
+//
+//  함수: WndProc(HWND, UINT, WPARAM, LPARAM)
+//
+//  용도: 주 창의 메시지를 처리합니다.
+//
+//  WM_COMMAND  - 애플리케이션 메뉴를 처리합니다.
+//  WM_PAINT    - 주 창을 그립니다.
+//  WM_DESTROY  - 종료 메시지를 게시하고 반환합니다.
+//
+//
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+    {
+    case WM_CREATE:
+        {
+            GetClientRect(hWnd, &rc);
+            gMaker();
+        }
+        break;
+    case WM_COMMAND:
+        {
+            int wmId = LOWORD(wParam);
+            // 메뉴 선택을 구문 분석합니다:
+            switch (wmId)
+            {
+            case IDM_ABOUT:
+                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+                break;
+            case IDM_EXIT:
+                DestroyWindow(hWnd);
+                break;
+            default:
+                return DefWindowProc(hWnd, message, wParam, lParam);
+            }
+        }
+        break;
+    case WM_PAINT:
+        {
+            PAINTSTRUCT ps;
+            hdc = BeginPaint(hWnd, &ps);
+            // TODO: 여기에 hdc를 사용하는 그리기 코드를 추가합니다...
+            // 
+            //격자그리기 시작
+            HPEN MyPen, OldPen;
+            MyPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+            OldPen = (HPEN)SelectObject(hdc, MyPen);
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    Rectangle(hdc, i * 60, j * 60, (i + 1) * 60, (j + 1) * 60);
+                }
+            }
+            SelectObject(hdc, OldPen);
+            DeleteObject(MyPen);
+            //격자그리기 끝
+
+            //격자에 숫자쓰기 시작
+            MyPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
+            OldPen = (HPEN)SelectObject(hdc, MyPen);
+            int startNum = 0, endNum = 0, result = 0; //시작점에서부터 경로값, 도착점부터의 경로값, 스타트넘 엔드넘 더한거
+            TCHAR str[50];
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    wsprintf(str, TEXT("%d   %d"), startNum, endNum);
+                    TextOut(hdc, i * 60 + 10, j * 60 + 10, str, lstrlen(str));
+                    wsprintf(str, TEXT("%d"), result);
+                    TextOut(hdc, i * 60 + 23, j * 60 + 35, str, lstrlen(str));
+                }
+            }
+            SelectObject(hdc, OldPen);
+            DeleteObject(MyPen);
+            //격자에 숫자쓰기 끝
+
+            
+            //색칠 시작
+            HBRUSH MyBrush, OldBrush;
+            
+
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    if (check[i][j] == 1 && Start_Save == true)
+                    {
+                        MyBrush = CreateSolidBrush(RGB(0, 0, 255));
+                        OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
+                        Rectangle(hdc, i * 60, j * 60, i * 60 + 60, j * 60 + 60);
+                        SelectObject(hdc, OldBrush);
+                        DeleteObject(MyBrush);
+                    }
+                    else if (check[i][j] == 2 && End_Save == true)
+                    {
+                        MyBrush = CreateSolidBrush(RGB(200, 200, 255));
+                        OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
+                        Rectangle(hdc, i * 60, j * 60, i * 60 + 60, j * 60 + 60);
+                        SelectObject(hdc, OldBrush);
+                        DeleteObject(MyBrush);
+                    }
+                    else if (check[i][j] == 3 && (Block_Space == true || Block_Save == true))
+                    {
+                        MyBrush = CreateSolidBrush(RGB(200, 200, 200));
+                        OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
+                        Rectangle(hdc, i * 60, j * 60, i * 60 + 60, j * 60 + 60);
+                        SelectObject(hdc, OldBrush);
+                        DeleteObject(MyBrush);
+                    }
+                    else if (check[i][j] == 4)
+                    {
+                        MyBrush = CreateSolidBrush(RGB(100, 100, 100));
+                        OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
+                        Rectangle(hdc, i * 60, j * 60, i * 60 + 60, j * 60 + 60);
+                        SelectObject(hdc, OldBrush);
+                        DeleteObject(MyBrush);
+                    }
+                }
+            }
+
+            if (endGame == true)
+            {
+                for (int i = 0; i < visited.size(); i++)
+                {
+                    MyBrush = CreateSolidBrush(RGB(0, 100, 0));
+                    OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
+                    Rectangle(hdc, visited[i].x * 60, visited[i].y * 60, visited[i].x * 60 + 60, visited[i].y * 60 + 60);
+                    SelectObject(hdc, OldBrush);
+                    DeleteObject(MyBrush);
+                }
+            }
+
+            EndPaint(hWnd, &ps);
+
+        }
+        break;
+    case WM_LBUTTONDOWN:
+        if (Block_Space == true)
+        {
+            BmousePos.x = LOWORD(lParam);
+            BmousePos.y = HIWORD(lParam);
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    if (((BmousePos.x > i * 60) && (BmousePos.x < (i + 1) * 60)) && ((BmousePos.y > j * 60) && (BmousePos.y < (j + 1) * 60)))
+                    {
+                        check[i][j] = 3;
+                        Block.push_back({ i,j });
+                    }
+                }
+            }
+        }
+        else if (Start_Save == false)
+        {
+            mousePos.x = LOWORD(lParam);
+            mousePos.y = HIWORD(lParam);
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    if (((mousePos.x > i * 60) && (mousePos.x < (i + 1) * 60)) && ((mousePos.y > j * 60) && (mousePos.y < (j + 1) * 60)))
+                    {
+                        check[i][j] = 1;
+                        Start_Save = true;
+                        visited.push_back({ i,j }); // 출발점 경로 저장
+                        Start = { i, j };
+                    }
+                }
+            }
+        }
+        InvalidateRect(hWnd, NULL, TRUE);
+        break;
+    case WM_RBUTTONDOWN:
+        if (End_Save == false)
+        {
+            mousePos.x = LOWORD(lParam);
+            mousePos.y = HIWORD(lParam);
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    if (((mousePos.x > i * 60) && (mousePos.x < (i + 1) * 60)) && ((mousePos.y > j * 60) && (mousePos.y < (j + 1) * 60)))
+                    {
+                        check[i][j] = 2;
+                        End = { i, j };
+                        End_Save = true;
+                    }
+                }
+            }
+        }
+        InvalidateRect(hWnd, NULL, TRUE);
+        break;
+    case WM_KEYDOWN:
+        switch (wParam)
+        {
+            case VK_SPACE:
+                Block_Space = true;
+                break;
+            case VK_RETURN:
+            {
+                while (1)
+                {
+                    if (visited.back().x == End.x && visited.back().y == End.y)
+                    {
+                        endGame = true;
+                        break;
+                    }
+                    aroundCheck();
+                }
+            }
+            break;
+        }
+        //InvalidateRect(hWnd, NULL, TRUE);
+        break;
+    case WM_KEYUP:
+        switch (wParam)
+        {
+            case VK_SPACE:
+                Block_Space = false;
+                Block_Save = true;
+                break;
+        }
+        break;
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+    default:
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    }
+    return 0;
+}
+
+// 정보 대화 상자의 메시지 처리기입니다.
+INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+        {
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+void gMaker() //도착지까지의 거리 계산
+{
+    int xGap, yGap;
+    
+    for (int i = 0; i < 10; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            xGap = abs(End.x - i);
+            yGap = abs(End.y - j);
+
+            g[i][j] = ((xGap == yGap) ? 14 * xGap : (xGap > yGap) ? xGap * 14 + (xGap - yGap) * 10 : yGap * 14 + (yGap - xGap) * 10);
+        }
+    }
+}
+
+void aroundCheck()
+{
+    int xGap, yGap;
+    int h;
+    int k;
+    vector<POINT> tempVec;
+    tempVec.clear();
+    tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
+    tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+    tempVec.push_back({ visited.back().x + 1, visited.back().y - 1 });
+    tempVec.push_back({ visited.back().x + 1, visited.back().y });
+    tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
+    tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+    tempVec.push_back({ visited.back().x - 1, visited.back().y + 1 });
+    tempVec.push_back({ visited.back().x - 1, visited.back().y });
+
+    openVec.clear();
+    Open_Value.clear();
+
+    for (int i = 0; i < tempVec.size(); i++)//주변 8개 친구들 검사
+    {
+        if (check[tempVec[i].x][tempVec[i].y] != 3)//블럭이 아닌 친구만 검사 왼쪽위
+        {
+            for (int j = 0; j < closeVec.size(); j++)
+            {
+                if (tempVec[i].x != closeVec[j].x && tempVec[i].y != closeVec[j].y) // 갔던 경로에 있는 친구들 아닌애들만 검사
+                {
+                    openVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
+                    closeVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
+
+                    xGap = abs(Start.x - (tempVec[i].x));
+                    yGap = abs(Start.y - (tempVec[i].y));
+
+                    h = ((xGap == yGap) ? 14 * xGap : (xGap > yGap) ? xGap * 14 + (xGap - yGap) * 10 : yGap * 14 + (yGap - xGap) * 10);
+
+                    Open_Value.push_back(h + g[tempVec[i].x][tempVec[i].y]);
+                }
+            }
+        }
+    }
+
+    //if (visited.back().x == End.x && visited.back().y == End.y)
+    //{
+    //    return;
+    //}
+    //else // 지금 검사하는 점이 도착점이 아니면 주변 친구들 검사해
+    //{
+    //    for (int i = 0; i < 8; i++)//주변 8개 친구들 검사
+    //    {
+    //        if (check[tempVec[i].x][tempVec[i].y] != 3)//블럭이 아닌 친구만 검사 왼쪽위
+    //        {
+    //            for (int j = 0; j < closeVec.size(); j++) 
+    //            {
+    //                if (tempVec[i].x != closeVec[j].x && tempVec[i].y != closeVec[j].y) // 갔던 경로에 있는 친구들 아닌애들만 검사
+    //                {
+    //                    openVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
+    //                    closeVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
+
+    //                    xGap = abs(Start.x - (tempVec[i].x));
+    //                    yGap = abs(Start.y - (tempVec[i].y));
+
+    //                    h = ((xGap == yGap) ? 14 * xGap : (xGap > yGap) ? xGap * 14 + (xGap - yGap) * 10 : yGap * 14 + (yGap - xGap) * 10);
+
+    //                    Open_Value.push_back(h + g[tempVec[i].x][tempVec[i].y]);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
+    
+    int min = 0;
+    for (int i = 0; i < openVec.size(); i++)
+    {
+        check[openVec[i].x][openVec[i].y] = 4; // 경로 색칠
+        if (Open_Value[min] > Open_Value[i])
+            min = i;
+    }
+
+    visited.push_back(openVec[min]);
+    //return;
+}
