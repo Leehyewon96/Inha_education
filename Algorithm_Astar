@@ -5,6 +5,11 @@
 #include "shortest_Route.h"
 using namespace std;
 
+bool operator== (POINT a, POINT b)
+{
+    return ((a.x == b.x) && (a.y == b.y));
+}
+
 #define MAX_LOADSTRING 100
 
 // 전역 변수:
@@ -253,19 +258,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         SelectObject(hdc, OldBrush);
                         DeleteObject(MyBrush);
                     }
+                    else if (check[i][j] == 5) //open경로 색칠
+                    {
+                        MyBrush = CreateSolidBrush(RGB(0, 255, 0));
+                        OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
+                        Rectangle(hdc, i * 60, j * 60, i * 60 + 60, j * 60 + 60);
+                        SelectObject(hdc, OldBrush);
+                        DeleteObject(MyBrush);
+                    }
                 }
             }
 
             if (endGame == true)
             {
-                for (int i = 0; i < visited.size(); i++)
+                /*for (int i = 0; i < visited.size(); i++)
                 {
                     MyBrush = CreateSolidBrush(RGB(0, 100, 0));
                     OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
                     Rectangle(hdc, visited[i].x * 60, visited[i].y * 60, visited[i].x * 60 + 60, visited[i].y * 60 + 60);
                     SelectObject(hdc, OldBrush);
                     DeleteObject(MyBrush);
-                }
+                }*/
                 //마지막 시작점 끝점 색칠 시작
                 for (int i = 0; i < 10; i++)
                 {
@@ -288,24 +301,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                             DeleteObject(MyBrush);
                         }
 
-                        ////격자에 숫자쓰기 시작
-                        //MyPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
-                        //OldPen = (HPEN)SelectObject(hdc, MyPen);
-                        //int startNum = 0, endNum = 0, result = 0; //시작점에서부터 경로값, 도착점부터의 경로값, 스타트넘 엔드넘 더한거
-                        //TCHAR str[50];
-                        //for (int i = 0; i < 10; i++)
-                        //{
-                        //    for (int j = 0; j < 10; j++)
-                        //    {
-                        //        wsprintf(str, TEXT("%d   %d"), h[i][j], g[i][j]);
-                        //        TextOut(hdc, i * 60 + 10, j * 60 + 10, str, lstrlen(str));
-                        //        wsprintf(str, TEXT("%d"), h[i][j] + g[i][j]);
-                        //        TextOut(hdc, i * 60 + 23, j * 60 + 35, str, lstrlen(str));
-                        //    }
-                        //}
-                        //SelectObject(hdc, OldPen);
-                        //DeleteObject(MyPen);
-                        ////격자에 숫자쓰기 끝
+                        //격자에 숫자쓰기 시작
+                        MyPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
+                        OldPen = (HPEN)SelectObject(hdc, MyPen);
+                        int startNum = 0, endNum = 0, result = 0; //시작점에서부터 경로값, 도착점부터의 경로값, 스타트넘 엔드넘 더한거
+                        TCHAR str[50];
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                wsprintf(str, TEXT("%d   %d"), h[i][j], g[i][j]);
+                                TextOut(hdc, i * 60 + 10, j * 60 + 10, str, lstrlen(str));
+                                wsprintf(str, TEXT("%d"), h[i][j] + g[i][j]);
+                                TextOut(hdc, i * 60 + 23, j * 60 + 35, str, lstrlen(str));
+                            }
+                        }
+                        SelectObject(hdc, OldPen);
+                        DeleteObject(MyPen);
+                        //격자에 숫자쓰기 끝
                     }
                 }
                 //마지막 시작점 끝점 색칠 끝
@@ -385,10 +398,65 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     left_aroundCheck();
                 }*/
                 aroundCheck();
-                endGame = true;
-                for (int i = 0; i < visited.size(); i++)
+                endGame = true;   
+
+
+                POINT curP = visited[visited.size() - 1];//도착지
+
+                while (visited.size() != 1)
                 {
-                    check[visited[i].x][visited[i].y] = 5;
+
+                    vector<POINT> maybeFriend;
+                    for (size_t j = 0; j < visited.size(); j++)
+                    {
+                        if (abs(curP.x - visited[j].x) <= 1 && abs(curP.y - visited[j].y) <= 1)//친구인지 비교
+                        {
+                            if (abs(curP.x - visited[j].x) == 0 && abs(curP.y - visited[j].y) == 0)
+                                continue;
+
+                            maybeFriend.push_back(visited[j]);
+                        }
+                    }
+
+                    int min_idx = 0;
+                    for (size_t j = 0; j < maybeFriend.size(); j++)
+                    {
+                        if (h[maybeFriend[min_idx].x][maybeFriend[min_idx].y] + g[maybeFriend[min_idx].x][maybeFriend[min_idx].y]
+                            >= h[maybeFriend[j].x][maybeFriend[j].y] + g[maybeFriend[j].x][maybeFriend[j].y])
+                        {
+                            min_idx = j;
+                        }
+                    }
+
+                    //i = min_idx;
+                    int mToV = 0;
+                    for (size_t j = 0; j < visited.size(); j++)
+                    {
+                        if (visited[j].x == maybeFriend[min_idx].x && visited[j].y == maybeFriend[min_idx].y)
+                        {
+                            mToV = j;
+                            break;
+                        }
+                    }
+                    POINT temp = curP;
+                    curP = visited[mToV];
+                    //친구들지우기
+                    check[maybeFriend[min_idx].x][maybeFriend[min_idx].y] = 5;
+
+                    for (size_t k = 0; k < maybeFriend.size(); k++)
+                    {
+                        for (size_t j = 0; j < visited.size(); j++)
+                        {
+
+                            if ((visited[j].x == maybeFriend[k].x && visited[j].y == maybeFriend[k].y) || visited[j] == temp)
+                            {
+                                if (j == mToV)
+                                    continue;
+                                visited.erase(visited.begin() + j);
+                            }
+                        }
+                    }
+
                 }
             }
             break;
@@ -569,6 +637,7 @@ void aroundCheck()
             }
             if (i != tempVec.size() - 1 && (tempVec[i + 1].x == End.x && tempVec[i + 1].y == End.y))//도착지 있음(다음 검사할 친구가 도착지이면 종료)
             {
+                visited.push_back(tempVec[i + 1]);
                 return;
             }
         }
