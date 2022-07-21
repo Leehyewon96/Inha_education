@@ -15,6 +15,8 @@ HDC hdc;
 static RECT rc;
 int check[10][10]; // 1 : 시작, 2 : 끝, 3 : 회색
 int g[10][10]; // 1 : 시작, 2 : 끝, 3 : 회색
+int h[10][10]; // 1 : 시작, 2 : 끝, 3 : 회색
+int f[10][10]; // 1 : 시작, 2 : 끝, 3 : 회색
 static POINT mousePos = {800, 800};
 static POINT BmousePos = { 800, 800 };
 static bool Start_Save = false;
@@ -37,6 +39,9 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 void gMaker(); //도착지까지의 거리 계산
 void aroundCheck();
+bool left_aroundCheck();
+void hMaker(int i, int j); //출발점까지의 거리 계산
+void fMaker(int i, int j); //출발점까지의 거리 계산
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -149,7 +154,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
         {
             GetClientRect(hWnd, &rc);
-            gMaker();
+            //gMaker();
         }
         break;
     case WM_COMMAND:
@@ -190,29 +195,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DeleteObject(MyPen);
             //격자그리기 끝
 
-            //격자에 숫자쓰기 시작
-            MyPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
-            OldPen = (HPEN)SelectObject(hdc, MyPen);
-            int startNum = 0, endNum = 0, result = 0; //시작점에서부터 경로값, 도착점부터의 경로값, 스타트넘 엔드넘 더한거
-            TCHAR str[50];
-            for (int i = 0; i < 10; i++)
-            {
-                for (int j = 0; j < 10; j++)
-                {
-                    wsprintf(str, TEXT("%d   %d"), startNum, endNum);
-                    TextOut(hdc, i * 60 + 10, j * 60 + 10, str, lstrlen(str));
-                    wsprintf(str, TEXT("%d"), result);
-                    TextOut(hdc, i * 60 + 23, j * 60 + 35, str, lstrlen(str));
-                }
-            }
-            SelectObject(hdc, OldPen);
-            DeleteObject(MyPen);
-            //격자에 숫자쓰기 끝
-
-            
             //색칠 시작
             HBRUSH MyBrush, OldBrush;
-            
 
             for (int i = 0; i < 10; i++)
             {
@@ -233,6 +217,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         Rectangle(hdc, i * 60, j * 60, i * 60 + 60, j * 60 + 60);
                         SelectObject(hdc, OldBrush);
                         DeleteObject(MyBrush);
+
+                        //격자에 숫자쓰기 시작
+                        MyPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
+                        OldPen = (HPEN)SelectObject(hdc, MyPen);
+                        int startNum = 0, endNum = 0, result = 0; //시작점에서부터 경로값, 도착점부터의 경로값, 스타트넘 엔드넘 더한거
+                        TCHAR str[50];
+                        for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                            {
+                                wsprintf(str, TEXT("%d   %d"), h[i][j], g[i][j]);
+                                TextOut(hdc, i * 60 + 10, j * 60 + 10, str, lstrlen(str));
+                                wsprintf(str, TEXT("%d"), h[i][j] + g[i][j]);
+                                TextOut(hdc, i * 60 + 23, j * 60 + 35, str, lstrlen(str));
+                            }
+                        }
+                        SelectObject(hdc, OldPen);
+                        DeleteObject(MyPen);
+                        //격자에 숫자쓰기 끝
                     }
                     else if (check[i][j] == 3 && (Block_Space == true || Block_Save == true))
                     {
@@ -242,9 +245,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                         SelectObject(hdc, OldBrush);
                         DeleteObject(MyBrush);
                     }
-                    else if (check[i][j] == 4)
+                    else if (check[i][j] == 4) //open경로 색칠
                     {
-                        MyBrush = CreateSolidBrush(RGB(100, 100, 100));
+                        MyBrush = CreateSolidBrush(RGB(255, 0, 0));
                         OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
                         Rectangle(hdc, i * 60, j * 60, i * 60 + 60, j * 60 + 60);
                         SelectObject(hdc, OldBrush);
@@ -263,10 +266,51 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     SelectObject(hdc, OldBrush);
                     DeleteObject(MyBrush);
                 }
+                //마지막 시작점 끝점 색칠 시작
+                for (int i = 0; i < 10; i++)
+                {
+                    for (int j = 0; j < 10; j++)
+                    {
+                        if (i == Start.x && j == Start.y)
+                        {
+                            MyBrush = CreateSolidBrush(RGB(0, 0, 255));
+                            OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
+                            Rectangle(hdc, i * 60, j * 60, i * 60 + 60, j * 60 + 60);
+                            SelectObject(hdc, OldBrush);
+                            DeleteObject(MyBrush);
+                        }
+                        else if (i == End.x && j == End.y)
+                        {
+                            MyBrush = CreateSolidBrush(RGB(200, 200, 255));
+                            OldBrush = (HBRUSH)SelectObject(hdc, MyBrush);
+                            Rectangle(hdc, i * 60, j * 60, i * 60 + 60, j * 60 + 60);
+                            SelectObject(hdc, OldBrush);
+                            DeleteObject(MyBrush);
+                        }
+
+                        ////격자에 숫자쓰기 시작
+                        //MyPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
+                        //OldPen = (HPEN)SelectObject(hdc, MyPen);
+                        //int startNum = 0, endNum = 0, result = 0; //시작점에서부터 경로값, 도착점부터의 경로값, 스타트넘 엔드넘 더한거
+                        //TCHAR str[50];
+                        //for (int i = 0; i < 10; i++)
+                        //{
+                        //    for (int j = 0; j < 10; j++)
+                        //    {
+                        //        wsprintf(str, TEXT("%d   %d"), h[i][j], g[i][j]);
+                        //        TextOut(hdc, i * 60 + 10, j * 60 + 10, str, lstrlen(str));
+                        //        wsprintf(str, TEXT("%d"), h[i][j] + g[i][j]);
+                        //        TextOut(hdc, i * 60 + 23, j * 60 + 35, str, lstrlen(str));
+                        //    }
+                        //}
+                        //SelectObject(hdc, OldPen);
+                        //DeleteObject(MyPen);
+                        ////격자에 숫자쓰기 끝
+                    }
+                }
+                //마지막 시작점 끝점 색칠 끝
             }
-
             EndPaint(hWnd, &ps);
-
         }
         break;
     case WM_LBUTTONDOWN:
@@ -318,11 +362,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     if (((mousePos.x > i * 60) && (mousePos.x < (i + 1) * 60)) && ((mousePos.y > j * 60) && (mousePos.y < (j + 1) * 60)))
                     {
                         check[i][j] = 2;
+                        //closeVec.push_back({ i,j });
                         End = { i, j };
                         End_Save = true;
                     }
                 }
             }
+            gMaker();
         }
         InvalidateRect(hWnd, NULL, TRUE);
         break;
@@ -334,19 +380,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case VK_RETURN:
             {
-                while (1)
+               /* if (!aroundCheck())
                 {
-                    if (visited.back().x == End.x && visited.back().y == End.y)
-                    {
-                        endGame = true;
-                        break;
-                    }
-                    aroundCheck();
+                    left_aroundCheck();
+                }*/
+                aroundCheck();
+                endGame = true;
+                for (int i = 0; i < visited.size(); i++)
+                {
+                    check[visited[i].x][visited[i].y] = 5;
                 }
             }
             break;
         }
-        //InvalidateRect(hWnd, NULL, TRUE);
+        InvalidateRect(hWnd, NULL, TRUE);
         break;
     case WM_KEYUP:
         switch (wParam)
@@ -397,9 +444,18 @@ void gMaker() //도착지까지의 거리 계산
             xGap = abs(End.x - i);
             yGap = abs(End.y - j);
 
-            g[i][j] = ((xGap == yGap) ? 14 * xGap : (xGap > yGap) ? xGap * 14 + (xGap - yGap) * 10 : yGap * 14 + (yGap - xGap) * 10);
+            g[i][j] = ((xGap == yGap) ? (14 * xGap) : ((xGap > yGap) ? (yGap * 14 + (xGap - yGap) * 10) : (xGap * 14 + (yGap - xGap) * 10)));
         }
     }
+}
+
+void hMaker(int i , int j) //출발점까지의 거리 계산
+{
+    int xGap, yGap;
+    xGap = abs(Start.x - i);
+    yGap = abs(Start.y - j);
+
+    h[i][j] = ((xGap == yGap) ? (14 * xGap) : ((xGap > yGap) ? (yGap * 14 + (xGap - yGap) * 10) : (xGap * 14 + (yGap - xGap) * 10)));
 }
 
 void aroundCheck()
@@ -408,78 +464,274 @@ void aroundCheck()
     int h;
     int k;
     vector<POINT> tempVec;
-    tempVec.clear();
-    tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
-    tempVec.push_back({ visited.back().x, visited.back().y - 1 });
-    tempVec.push_back({ visited.back().x + 1, visited.back().y - 1 });
-    tempVec.push_back({ visited.back().x + 1, visited.back().y });
-    tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
-    tempVec.push_back({ visited.back().x , visited.back().y + 1 });
-    tempVec.push_back({ visited.back().x - 1, visited.back().y + 1 });
-    tempVec.push_back({ visited.back().x - 1, visited.back().y });
 
-    openVec.clear();
-    Open_Value.clear();
-
-    for (int i = 0; i < tempVec.size(); i++)//주변 8개 친구들 검사
+    do 
     {
-        if (check[tempVec[i].x][tempVec[i].y] != 3)//블럭이 아닌 친구만 검사 왼쪽위
+        tempVec.clear();
+
+        if (visited.back().x == 9 && visited.back().y == 9)
         {
-            for (int j = 0; j < closeVec.size(); j++)
+        tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
+        tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+        tempVec.push_back({ visited.back().x - 1, visited.back().y });
+        }
+        else if (visited.back().x == 9)
+        {
+            tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x - 1, visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x - 1, visited.back().y });
+        }
+        else if (visited.back().y == 9)
+        {
+            tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y });
+            tempVec.push_back({ visited.back().x - 1, visited.back().y });
+        }
+        else if (visited.back().x == 0 && visited.back().y == 0)
+        {
+            tempVec.push_back({ visited.back().x + 1, visited.back().y });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+        }
+        else if (visited.back().x == 0)
+        {
+            tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+        }
+        else if (visited.back().y == 0)
+        {
+            tempVec.push_back({ visited.back().x + 1, visited.back().y });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x - 1, visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x - 1, visited.back().y });
+        }
+        else
+        {
+            tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y - 1 });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y });
+            tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x - 1, visited.back().y + 1 });
+            tempVec.push_back({ visited.back().x - 1, visited.back().y });
+        }
+
+        openVec.clear();
+        Open_Value.clear();
+
+        closeVec.push_back(visited.back());
+        for (int i = 0; i < tempVec.size(); i++)//주변 친구들 검사
+        {
+            hMaker(tempVec[i].x, tempVec[i].y);
+            if (check[tempVec[i].x][tempVec[i].y] != 3)//블럭이 아닌 친구만 검사
             {
-                if (tempVec[i].x != closeVec[j].x && tempVec[i].y != closeVec[j].y) // 갔던 경로에 있는 친구들 아닌애들만 검사
+                if (closeVec.size() != 0)
+                {
+                    int cnt = 0;
+                    for (int j = 0; j < closeVec.size(); j++)
+                    {
+                        if (tempVec[i].x == closeVec[j].x && tempVec[i].y == closeVec[j].y) // 갔던 경로에 있는 친구들 아닌애들만 검사
+                        {
+                            cnt++;
+                        }
+                    }
+                    if (cnt == 0)
+                    {
+                        openVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
+                        //closeVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
+                        xGap = abs(Start.x - (tempVec[i].x));
+                        yGap = abs(Start.y - (tempVec[i].y));
+                        h = ((xGap == yGap) ? (14 * xGap) : ((xGap > yGap) ? (yGap * 14 + (xGap - yGap) * 10) : (xGap * 14 + (yGap - xGap) * 10)));
+                        Open_Value.push_back(h + g[tempVec[i].x][tempVec[i].y]);
+                    }
+                }
+                else
                 {
                     openVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
-                    closeVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
+                    //closeVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
 
                     xGap = abs(Start.x - (tempVec[i].x));
                     yGap = abs(Start.y - (tempVec[i].y));
 
-                    h = ((xGap == yGap) ? 14 * xGap : (xGap > yGap) ? xGap * 14 + (xGap - yGap) * 10 : yGap * 14 + (yGap - xGap) * 10);
+                    h =((xGap == yGap) ? (14 * xGap) : ((xGap > yGap) ? (yGap * 14 + (xGap - yGap) * 10) : (xGap * 14 + (yGap - xGap) * 10)));
 
                     Open_Value.push_back(h + g[tempVec[i].x][tempVec[i].y]);
                 }
             }
+            if (i != tempVec.size() - 1 && (tempVec[i + 1].x == End.x && tempVec[i + 1].y == End.y))//도착지 있음(다음 검사할 친구가 도착지이면 종료)
+            {
+                return;
+            }
         }
-    }
 
-    //if (visited.back().x == End.x && visited.back().y == End.y)
+        if (openVec.size() == 0 || Open_Value.size() == 0)
+            return ;
+
+        int min = 0;
+        for (int i = 0; i < openVec.size(); i++)
+        {
+            if (Open_Value.size() == 0)
+                break;
+            check[openVec[i].x][openVec[i].y] = 4; // 경로 색칠
+            if (Open_Value[min] >= Open_Value[i])
+            {
+                min = i;
+            }
+                
+        }
+        visited.push_back(openVec[min]);
+        closeVec.push_back(openVec[min]);
+        
+    } while (!(visited.back().x == End.x && visited.back().y == End.y));
+}
+
+bool left_aroundCheck()
+{
+    //int xGap, yGap;
+    //int h;
+    //int k;
+    //vector<POINT> tempVec;
+
+    //closeVec.clear();
+    //closeVec.push_back(End);
+    //visited.clear();
+    //visited.push_back(Start);
+
+    //do
     //{
-    //    return;
-    //}
-    //else // 지금 검사하는 점이 도착점이 아니면 주변 친구들 검사해
-    //{
-    //    for (int i = 0; i < 8; i++)//주변 8개 친구들 검사
+    //    tempVec.clear();
+
+    //    if (visited.back().x == 9 && visited.back().y == 9)
     //    {
-    //        if (check[tempVec[i].x][tempVec[i].y] != 3)//블럭이 아닌 친구만 검사 왼쪽위
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y });
+    //        tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
+    //    }
+    //    else if (visited.back().x == 9)
+    //    {
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y });
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
+    //    }
+    //    else if (visited.back().y == 9)
+    //    {
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y - 1 });
+    //        tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
+    //    }
+    //    else if (visited.back().x == 0 && visited.back().y == 0)
+    //    {
+    //        tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y });
+    //    }
+    //    else if (visited.back().x == 0)
+    //    {
+    //        tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y - 1 });
+    //        tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+    //    }
+    //    else if (visited.back().y == 0)
+    //    {
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y });
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y });
+    //    }
+    //    else
+    //    {
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y });
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x , visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y + 1 });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y });
+    //        tempVec.push_back({ visited.back().x + 1, visited.back().y - 1 });
+    //        tempVec.push_back({ visited.back().x, visited.back().y - 1 });
+    //        tempVec.push_back({ visited.back().x - 1, visited.back().y - 1 });
+    //    }
+
+    //    openVec.clear();
+    //    Open_Value.clear();
+
+    //    closeVec.push_back(visited.back());
+    //    for (int i = 0; i < tempVec.size(); i++)//주변 친구들 검사
+    //    {
+    //        hMaker(tempVec[i].x, tempVec[i].y);
+    //        if (check[tempVec[i].x][tempVec[i].y] != 3)//블럭이 아닌 친구만 검사
     //        {
-    //            for (int j = 0; j < closeVec.size(); j++) 
+    //            if (closeVec.size() != 0)
     //            {
-    //                if (tempVec[i].x != closeVec[j].x && tempVec[i].y != closeVec[j].y) // 갔던 경로에 있는 친구들 아닌애들만 검사
+    //                int cnt = 0;
+    //                for (int j = 0; j < closeVec.size(); j++)
+    //                {
+    //                    if (tempVec[i].x == closeVec[j].x && tempVec[i].y == closeVec[j].y) // 갔던 경로에 있는 친구들 아닌애들만 검사
+    //                    {
+    //                        cnt++;
+    //                    }
+    //                }
+    //                if (cnt == 0)
     //                {
     //                    openVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
     //                    closeVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
-
     //                    xGap = abs(Start.x - (tempVec[i].x));
     //                    yGap = abs(Start.y - (tempVec[i].y));
-
-    //                    h = ((xGap == yGap) ? 14 * xGap : (xGap > yGap) ? xGap * 14 + (xGap - yGap) * 10 : yGap * 14 + (yGap - xGap) * 10);
-
+    //                    h = ((xGap == yGap) ? (14 * xGap) : ((xGap > yGap) ? (yGap * 14 + (xGap - yGap) * 10) : (xGap * 14 + (yGap - xGap) * 10)));
     //                    Open_Value.push_back(h + g[tempVec[i].x][tempVec[i].y]);
     //                }
     //            }
+    //            else
+    //            {
+    //                openVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
+    //                closeVec.push_back({ tempVec[i].x, tempVec[i].y }); //방문한 칸에 추가
+
+    //                xGap = abs(Start.x - (tempVec[i].x));
+    //                yGap = abs(Start.y - (tempVec[i].y));
+
+    //                h = ((xGap == yGap) ? (14 * xGap) : ((xGap > yGap) ? (yGap * 14 + (xGap - yGap) * 10) : (xGap * 14 + (yGap - xGap) * 10)));
+
+    //                Open_Value.push_back(h + g[tempVec[i].x][tempVec[i].y]);
+    //            }
+    //        }
+    //        if (i != tempVec.size() - 1 && (tempVec[i + 1].x == End.x && tempVec[i + 1].y == End.y))//도착지 있음(다음 검사할 친구가 도착지이면 종료)
+    //        {
+    //            return true;
     //        }
     //    }
-    //}
-    
-    int min = 0;
-    for (int i = 0; i < openVec.size(); i++)
-    {
-        check[openVec[i].x][openVec[i].y] = 4; // 경로 색칠
-        if (Open_Value[min] > Open_Value[i])
-            min = i;
-    }
 
-    visited.push_back(openVec[min]);
-    //return;
+    //    /*if (openVec.size() == 0 || Open_Value.size() == 0)
+    //        return ;*/
+
+    //    int min = 0;
+    //    for (int i = 0; i < openVec.size(); i++)
+    //    {
+    //        if (Open_Value.size() == 0)
+    //            break;
+    //        check[openVec[i].x][openVec[i].y] = 4; // 경로 색칠
+    //        if (Open_Value[min] >= Open_Value[i])
+    //        {
+    //            min = i;
+    //        }
+
+    //    }
+    //    visited.push_back(openVec[min]);
+
+
+    //} while (!(visited.back().x == End.x && visited.back().y == End.y));
+return false;
 }
